@@ -11,6 +11,8 @@ object MiraiDailySign : KotlinPlugin(
         version = "0.1.0",
     ) {
         author("MrXiaoM")
+
+        dependsOn("xyz.cssxsh.mirai.plugin.mirai-economy-core")
     }
 ) {
     override fun onEnable() {

@@ -13,3 +13,11 @@ repositories {
     maven("https://maven.aliyun.com/repository/central")
     mavenCentral()
 }
+
+dependencies {
+    compileOnly("xyz.cssxsh.mirai:mirai-economy-core:1.0.0-M1")
+}
+
+mirai {
+    jvmTarget = JavaVersion.VERSION_11
+}
