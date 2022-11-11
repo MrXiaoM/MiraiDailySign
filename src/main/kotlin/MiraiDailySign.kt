@@ -1,4 +1,4 @@
-package top.mrxiaom
+package top.mrxiaom.mirai.dailysign
 
 import net.mamoe.mirai.console.plugin.jvm.JvmPluginDescription
 import net.mamoe.mirai.console.plugin.jvm.KotlinPlugin
