@@ -1,9 +1,22 @@
 package top.mrxiaom.mirai.dailysign
 
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import net.mamoe.mirai.console.command.CommandManager.INSTANCE.register
 import net.mamoe.mirai.console.plugin.jvm.JvmPluginDescription
 import net.mamoe.mirai.console.plugin.jvm.KotlinPlugin
 import net.mamoe.mirai.contact.Group
+import net.mamoe.mirai.event.events.GroupAwareMessageEvent
+import net.mamoe.mirai.event.events.GroupMessageEvent
+import net.mamoe.mirai.event.events.MessageEvent
+import net.mamoe.mirai.message.data.At
+import net.mamoe.mirai.message.data.MessageChain
+import net.mamoe.mirai.message.data.PlainText
 import net.mamoe.mirai.utils.info
+import org.mozilla.javascript.Context
+import org.mozilla.javascript.Function
+import org.mozilla.javascript.ScriptableObject
+import top.mrxiaom.mirai.dailysign.command.ConsoleCommand
 import top.mrxiaom.mirai.dailysign.config.DailySignConfig
 import top.mrxiaom.mirai.dailysign.data.SignUser
 import java.io.File
@@ -22,9 +35,11 @@ object MiraiDailySign : KotlinPlugin(
     val loadedUsers = mutableMapOf<Long, SignUser>()
     val loadedConfigs = mutableMapOf<Long, DailySignConfig>()
     val defaultConfig by lazy { DailySignConfig() }
+    val replaceScriptFile by lazy { File(configFolder, "replace.js") }
+    var replaceScript = ""
     override fun onEnable() {
-
-        defaultConfig.reload()
+        reloadConfig()
+        ConsoleCommand.register()
 
         logger.info { "Plugin loaded" }
     }
@@ -33,7 +48,26 @@ object MiraiDailySign : KotlinPlugin(
         return loadedUsers[id] ?: SignUser(id).also { loadedUsers[id] = it }
     }
 
+    fun reloadReplaceScript() {
+        if (!replaceScriptFile.exists()) {
+            replaceScriptFile.writeText(
+                getResource("replace.js") ?: "// `replace.js` not found.\n"
+            )
+        }
+        replaceScript = replaceScriptFile.readText()
+    }
+
+    fun runReplaceScript(s: String, event: GroupMessageEvent): String = Context.enter().use {
+        val scope = it.initStandardObjects()
+        ScriptableObject.putProperty(scope, "javaContext", Context.javaToJS(this, scope))
+        ScriptableObject.putProperty(scope, "javaLoader", Context.javaToJS(this::class.java.classLoader, scope))
+        it.evaluateString(scope, replaceScript, "MiraiDailySign", 1, null)
+        val function = scope.get("replace", scope) as Function
+        return@use function.call(it, scope, scope, arrayOf(s, event)).toString()
+    }
+
     fun reloadConfig() {
+        reloadReplaceScript()
         defaultConfig.reload()
         val groups = File(dataFolder, "groups").listFiles()?.mapNotNull {
             it.nameWithoutExtension.toLongOrNull()
