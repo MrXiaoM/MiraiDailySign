@@ -16,6 +16,8 @@
 * [ ] 连续签到奖励
 * [x] 月签到日历
 
+未经测试
+
 ## 安装
 
 到 [Releases](https://github.com/MrXiaoM/MiraiDailySign/releases) 下载插件并放入 plugins 文件夹进行安装

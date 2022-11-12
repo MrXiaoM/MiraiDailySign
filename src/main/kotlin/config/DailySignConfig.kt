@@ -1,6 +1,9 @@
 package top.mrxiaom.mirai.dailysign.config
 
-import net.mamoe.mirai.console.data.*
+import net.mamoe.mirai.console.data.ReadOnlyPluginConfig
+import net.mamoe.mirai.console.data.ValueDescription
+import net.mamoe.mirai.console.data.ValueName
+import net.mamoe.mirai.console.data.value
 import net.mamoe.mirai.contact.Group
 import net.mamoe.mirai.contact.User
 import xyz.cssxsh.mirai.economy.EconomyService
@@ -45,6 +48,13 @@ class DailySignConfig(
         "\$今天是\$date \$week \$time",
         "祝你有美好的一天"
     ))
+    @ValueName("already-sign-message")
+    @ValueDescription("今日已签到的提示(列表，换行)，留空[]为不提示\n" +
+            "其中，\$quote 为回复消息，\$at 为 @，\$avatar 为用户头像(加载失败时显示QQ号)\n" +
+            "变量同上")
+    val alreadySignMessage by value(listOf(
+        "\$quote你今天已经签到过了"
+    ))
 
     @ValueName("reward-template-global")
     @ValueDescription("签到奖励模板(全局上下文)，其中 \$currency 为货币种类，\$money 为货币数量")
@@ -52,6 +62,11 @@ class DailySignConfig(
     @ValueName("reward-template-group")
     @ValueDescription("签到奖励模板(群聊上下文)，其中 \$currency 为货币种类，\$money 为货币数量")
     val rewardTemplateGroup by value("☆ \$currency * \$money\n")
+
+    fun getRewardTemple(info: RewardInfo): String =
+        (if (info.isGlobal) rewardTemplateGlobal else rewardTemplateGroup)
+        .replace("\$currency", info.currency.name)
+        .replace("\$money", info.money.toString())
 
     @ValueName("rewards")
     @ValueDescription("签到奖励，格式如下\n" +
