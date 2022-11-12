@@ -11,11 +11,13 @@ import net.mamoe.mirai.console.util.ConsoleExperimentalApi
 import net.mamoe.mirai.contact.Group
 import net.mamoe.mirai.contact.Member
 import net.mamoe.mirai.contact.User
+import top.mrxiaom.mirai.dailysign.MiraiDailySign
 import top.mrxiaom.mirai.dailysign.PermissionHolder
 import xyz.cssxsh.mirai.economy.EconomyService
 import xyz.cssxsh.mirai.economy.economy
 import xyz.cssxsh.mirai.economy.globalEconomy
 import xyz.cssxsh.mirai.economy.service.EconomyCurrency
+import kotlin.random.Random
 
 class DailySignConfig(
     val groupId: String = "default"
@@ -80,21 +82,25 @@ class DailySignConfig(
     @ValueName("rewards")
     @ValueDescription("签到奖励，格式如下\n" +
             "奖励金钱到群聊上下文 group:货币种类:数量\n" +
-            "奖励金钱到全局上下文 global:货币种类:数量")
+            "奖励金钱到全局上下文 global:货币种类:数量\n" +
+            "数量可填固定数量，如 50，也可以用-符号连接两个整数来表示随机数，如 50-100\n" +
+            "随机数的上界和下界均可取得")
     val rewards by value(listOf("group:mirai-coin:100"))
     val realRewards = mutableListOf<Reward>()
     class Reward(
         val isGlobal: Boolean,
         val currency: EconomyCurrency,
-        val money: Double
+        val money: IMoney
     )
     class RewardInfo(
         val isGlobal: Boolean,
         val currency: EconomyCurrency,
         val money: Double
     )
+    @OptIn(ConsoleExperimentalApi::class)
     fun loadRewards() {
         realRewards.clear()
+        MiraiDailySign.logger.verbose("正在加载配置 $saveName 的签到奖励")
         for (line in rewards){
             val params = line.split(":")
             val global = when (params.getOrNull(0) ?: error("不存在参数: 经济上下文")) {
@@ -104,22 +110,48 @@ class DailySignConfig(
             }
             val currencyName = params.getOrNull(1) ?: error("不存在参数: 货币种类")
             val currency = EconomyService.basket[currencyName] ?: error("货币种类 $currencyName 不存在")
-            val money = (params.getOrNull(2) ?: error("不存在参数: 金钱数量")).toDoubleOrNull() ?: error("错误: 填入的金钱数量应为数字")
+            val p2 = params.getOrNull(2) ?: error("不存在参数: 金钱数量")
+            val money = p2.toFixedMoney() ?: p2.toRandomMoney() ?: error("参数错误: 输入的金钱 $p2 无效")
             realRewards.add(Reward(global, currency, money))
         }
     }
     fun giveRewardsTo(group: Group, user: User): List<RewardInfo> {
         val result = mutableListOf<RewardInfo>()
-        // TODO 返回奖励详细
         realRewards.forEach {
             it.run {
+                val finalMoney = money()
                 if (isGlobal) globalEconomy {
-                    service.account(user) += (currency to money)
+                    service.account(user) += (currency to finalMoney)
                 } else group.economy {
-                    service.account(user) += (currency to money)
+                    service.account(user) += (currency to finalMoney)
                 }
+                result.add(RewardInfo(isGlobal, currency, finalMoney))
             }
         }
         return result
     }
+}
+
+interface IMoney{
+    operator fun invoke(): Double
+}
+class FixedMoney(
+    private val money: Double
+): IMoney {
+    override fun invoke(): Double = money
+}
+class RandomMoney(
+    private val min: Int,
+    private val max: Int
+): IMoney {
+    override fun invoke(): Double = Random.nextInt(min, max + 1).toDouble()
+}
+fun String.toFixedMoney(): FixedMoney? {
+    return FixedMoney(this.toDoubleOrNull() ?: return null)
+}
+fun String.toRandomMoney(): RandomMoney? {
+    return RandomMoney(
+        substringBefore("-").toIntOrNull() ?: return null,
+        substringAfter("-").toIntOrNull() ?: return null
+    )
 }
