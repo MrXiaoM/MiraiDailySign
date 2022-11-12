@@ -2,6 +2,7 @@ package top.mrxiaom.mirai.dailysign.command
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
+import net.mamoe.mirai.console.plugin.id
 import net.mamoe.mirai.console.util.ConsoleExperimentalApi
 import net.mamoe.mirai.contact.Contact
 import net.mamoe.mirai.contact.Contact.Companion.uploadImage
@@ -25,6 +26,14 @@ object MessageHost : SimpleListenerHost() {
         val config = dailySign()
         if (config.at && !hasAtBot()) return
         if (!config.keywords.contains(textOnly().trim())) return
+        if (!config.hasPerm(sender)) {
+            if (config.denyMessage.isNotEmpty()) {
+                val msg = config.denyMessage.joinToString()
+                    .replace("\$perm", main.id + ":" + config.permission)
+                group.sendMessage(replaceRichVariable(msg, group, sender, QuoteReply(source)))
+            }
+            return
+        }
         val user = main.getUser(sender.id)
         // global
         if (config.saveName == "default") {

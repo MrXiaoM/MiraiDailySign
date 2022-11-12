@@ -4,8 +4,14 @@ import net.mamoe.mirai.console.data.ReadOnlyPluginConfig
 import net.mamoe.mirai.console.data.ValueDescription
 import net.mamoe.mirai.console.data.ValueName
 import net.mamoe.mirai.console.data.value
+import net.mamoe.mirai.console.permission.AbstractPermitteeId
+import net.mamoe.mirai.console.permission.PermissionService.Companion.testPermission
+import net.mamoe.mirai.console.permission.PermitteeId
+import net.mamoe.mirai.console.util.ConsoleExperimentalApi
 import net.mamoe.mirai.contact.Group
+import net.mamoe.mirai.contact.Member
 import net.mamoe.mirai.contact.User
+import top.mrxiaom.mirai.dailysign.PermissionHolder
 import xyz.cssxsh.mirai.economy.EconomyService
 import xyz.cssxsh.mirai.economy.economy
 import xyz.cssxsh.mirai.economy.globalEconomy
@@ -26,6 +32,9 @@ class DailySignConfig(
             "这个权限才能签到，其中 \$file 会被替换成当前配置文件名(不含后缀)\n" +
             "以默认配置文件为例，需要权限 top.mrxiaom.mirai.dailysign:sign.default")
     val permission by value("sign.\$file")
+    fun hasPerm(permitteeId: PermitteeId) : Boolean = PermissionHolder[permission].testPermission(permitteeId)
+    fun hasPerm(member: Member) : Boolean = hasPerm(AbstractPermitteeId.ExactMember(member.group.id, member.id))
+
     @ValueName("deny-message")
     @ValueDescription("没有权限时的提示(列表，换行)，留空[]为不提示\n" +
             "其中，\$quote 为回复消息，\$at 为 @，\$perm 为用户缺少的权限")
