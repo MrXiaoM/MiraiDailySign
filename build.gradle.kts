@@ -15,7 +15,8 @@ repositories {
 }
 
 dependencies {
-    compileOnly("xyz.cssxsh.mirai:mirai-economy-core:1.0.0-M1")
+    compileOnly("xyz.cssxsh.mirai:mirai-economy-core:1.0.1")
+    implementation("org.mozilla:rhino:1.7.14")
 }
 
 mirai {
