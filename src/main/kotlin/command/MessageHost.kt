@@ -3,7 +3,6 @@ package top.mrxiaom.mirai.dailysign.command
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import net.mamoe.mirai.console.plugin.id
-import net.mamoe.mirai.console.util.ConsoleExperimentalApi
 import net.mamoe.mirai.contact.Contact
 import net.mamoe.mirai.contact.Contact.Companion.uploadImage
 import net.mamoe.mirai.contact.User
@@ -13,6 +12,7 @@ import net.mamoe.mirai.event.events.GroupMessageEvent
 import net.mamoe.mirai.message.data.*
 import top.mrxiaom.mirai.dailysign.*
 import top.mrxiaom.mirai.dailysign.config.DailySignConfig
+import top.mrxiaom.mirai.dailysign.config.isDefaultConfig
 import top.mrxiaom.mirai.dailysign.data.SignUser
 import java.net.URL
 
@@ -20,12 +20,15 @@ typealias main = MiraiDailySign
 
 object MessageHost : SimpleListenerHost() {
 
-    @OptIn(ConsoleExperimentalApi::class)
     @EventHandler
     suspend fun GroupMessageEvent.listen() {
+        // 获取配置
         val config = dailySign()
+        // at 检查
         if (config.at && !hasAtBot()) return
+        // 关键词检查
         if (!config.keywords.contains(textOnly().trim())) return
+        // 权限检查
         if (!config.hasPerm(sender)) {
             if (config.denyMessage.isNotEmpty()) {
                 val msg = config.denyMessage.joinToString()
@@ -34,24 +37,30 @@ object MessageHost : SimpleListenerHost() {
             }
             return
         }
+        // 获取用户
         val user = main.getUser(sender.id)
-        // global
-        if (config.saveName == "default") {
+        // 默认配置
+        if (config.isDefaultConfig) {
+            // 检查是否已签
             if (user.global.hasSign()) {
                 sendAlreadySignMessage(config, this)
                 return
             }
+            // 签到
             if (user.global.sign()) {
                 val reward = config.giveRewardsTo(group, sender)
                 sendSuccessMessage(config, user.global, reward, this)
             }
         }
+        // 特定配置
         else {
             val info = user.groups[group.id]?: SignUser.SignInfo()
+            // 检查是否已签
             if (info.hasSign()) {
                 sendAlreadySignMessage(config, this)
                 return
             }
+            // 签到
             if (info.sign()) {
                 val reward = config.giveRewardsTo(group, sender)
                 sendSuccessMessage(config, info, reward, this)
@@ -67,7 +76,7 @@ object MessageHost : SimpleListenerHost() {
         event: GroupMessageEvent
     ) {
         val rewards = rewardInfo.map { config.getRewardTemple(it) }
-        val msg = MiraiDailySign.runReplaceScript(
+        val msg = main.runReplaceScript(
             config.successMessage.joinToString("\n")
                 .replace("\$lasting", info.lastingSignDays.toString())
                 .replace("\$rewards", rewards.joinToString()),
@@ -79,7 +88,7 @@ object MessageHost : SimpleListenerHost() {
         config: DailySignConfig,
         event: GroupMessageEvent
     ) {
-        val msg = MiraiDailySign.runReplaceScript(
+        val msg = main.runReplaceScript(
             config.alreadySignMessage.joinToString("\n"),
             event
         )

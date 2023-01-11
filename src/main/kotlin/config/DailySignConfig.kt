@@ -131,6 +131,8 @@ class DailySignConfig(
         return result
     }
 }
+val DailySignConfig.isDefaultConfig: Boolean
+    get() = saveName == "default"
 
 interface IMoney{
     operator fun invoke(): Double
