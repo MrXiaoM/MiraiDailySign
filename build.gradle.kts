@@ -12,11 +12,13 @@ version = "0.1.0"
 repositories {
     maven("https://repo.huaweicloud.com/repository/maven/")
     mavenCentral()
+    maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
 }
 
 dependencies {
     compileOnly("xyz.cssxsh.mirai:mirai-economy-core:1.0.6")
     compileOnly("xyz.cssxsh.mirai:mirai-hibernate-plugin:2.7.1")
+    compileOnly("xyz.cssxsh.mirai:mirai-skia-plugin:1.3.2")
     implementation("org.mozilla:rhino:1.7.14")
 }
 

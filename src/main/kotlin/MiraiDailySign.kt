@@ -32,6 +32,7 @@ object MiraiDailySign : KotlinPlugin(
         author("MrXiaoM")
 
         dependsOn("xyz.cssxsh.mirai.plugin.mirai-economy-core")
+        dependsOn("xyz.cssxsh.mirai.plugin.mirai-skia-plugin", ">= 1.1.0")
     }
 ) {
     val loadedUsers = mutableMapOf<Long, SignUser>()
