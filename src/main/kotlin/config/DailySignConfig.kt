@@ -13,6 +13,8 @@ import net.mamoe.mirai.contact.Member
 import net.mamoe.mirai.contact.User
 import top.mrxiaom.mirai.dailysign.MiraiDailySign
 import top.mrxiaom.mirai.dailysign.PermissionHolder
+import top.mrxiaom.mirai.dailysign.config.FixedMoney.Companion.toFixedMoney
+import top.mrxiaom.mirai.dailysign.config.RandomMoney.Companion.toRandomMoney
 import xyz.cssxsh.mirai.economy.EconomyService
 import xyz.cssxsh.mirai.economy.economy
 import xyz.cssxsh.mirai.economy.globalEconomy
@@ -86,12 +88,20 @@ class DailySignConfig(
             "数量可填固定数量，如 50，也可以用-符号连接两个整数来表示随机数，如 50-100\n" +
             "随机数的上界和下界均可取得")
     val rewards by value(listOf("group:mirai-coin:100"))
-    val realRewards = mutableListOf<Reward>()
+    private val realRewards = mutableListOf<Reward>()
+
+    /**
+     * 由 rewards 反序列化而来的签到奖励配置
+     */
     class Reward(
         val isGlobal: Boolean,
         val currency: EconomyCurrency,
         val money: IMoney
     )
+
+    /**
+     * 签到后返回的签到结果信息
+     */
     class RewardInfo(
         val isGlobal: Boolean,
         val currency: EconomyCurrency,
@@ -131,30 +141,43 @@ class DailySignConfig(
         return result
     }
 }
+@OptIn(ConsoleExperimentalApi::class)
 val DailySignConfig.isDefaultConfig: Boolean
     get() = saveName == "default"
 
 interface IMoney{
     operator fun invoke(): Double
 }
+
+/**
+ * 固定金钱
+ */
 class FixedMoney(
-    private val money: Double
+    val money: Double
 ): IMoney {
     override fun invoke(): Double = money
+    companion object {
+        fun String.toFixedMoney(): FixedMoney? {
+            return FixedMoney(this.toDoubleOrNull() ?: return null)
+        }
+    }
 }
+
+/**
+ * 有范围的随机金钱
+ */
 class RandomMoney(
-    private val min: Int,
-    private val max: Int
+    val min: Int,
+    val max: Int
 ): IMoney {
     override fun invoke(): Double = Random.nextInt(min, max + 1).toDouble()
-}
-fun String.toFixedMoney(): FixedMoney? {
-    return FixedMoney(this.toDoubleOrNull() ?: return null)
-}
-fun String.toRandomMoney(): RandomMoney? {
-    return if (!contains("-")) null
-    else RandomMoney(
-        substringBefore("-").toIntOrNull() ?: return null,
-        substringAfter("-").toIntOrNull() ?: return null
-    )
+    companion object {
+        fun String.toRandomMoney(): RandomMoney? {
+            return if (!contains("-")) null
+            else RandomMoney(
+                substringBefore("-").toIntOrNull() ?: return null,
+                substringAfter("-").toIntOrNull() ?: return null
+            )
+        }
+    }
 }
