@@ -8,6 +8,10 @@ import net.mamoe.mirai.console.plugin.id
 object PermissionHolder {
     private val permissions = mutableMapOf<String, Permission>()
     operator fun get(name: String, description: String = ""): Permission {
-        return permissions[name] ?: PermissionService.INSTANCE.register(PermissionId(MiraiDailySign.id, name), description)
+        return permissions[name] ?: PermissionService.INSTANCE.register(
+            PermissionId(MiraiDailySign.id, name), description, MiraiDailySign.parentPermission
+        ).also {
+            permissions[name] = it
+        }
     }
 }
