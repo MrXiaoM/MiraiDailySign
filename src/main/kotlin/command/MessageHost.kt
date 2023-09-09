@@ -11,6 +11,7 @@ import net.mamoe.mirai.event.SimpleListenerHost
 import net.mamoe.mirai.event.events.GroupMessageEvent
 import net.mamoe.mirai.message.data.*
 import top.mrxiaom.mirai.dailysign.*
+import top.mrxiaom.mirai.dailysign.MiraiDailySign.save
 import top.mrxiaom.mirai.dailysign.config.DailySignConfig
 import top.mrxiaom.mirai.dailysign.data.SignUser
 import top.mrxiaom.mirai.dailysign.utils.filterAt
@@ -54,6 +55,7 @@ object MessageHost : SimpleListenerHost() {
             if (user.global.sign()) {
                 val reward = config.giveRewardsTo(group, sender)
                 sendSuccessMessage(config, user.global, reward, this)
+                user.save()
             } else {
                 sendAlreadySignMessage(config, this)
             }
@@ -66,6 +68,7 @@ object MessageHost : SimpleListenerHost() {
                 val reward = config.giveRewardsTo(group, sender)
                 sendSuccessMessage(config, info, reward, this)
                 user.groups[group.id] = info
+                user.save()
             } else {
                 // 发送已签到过的提示
                 sendAlreadySignMessage(config, this)

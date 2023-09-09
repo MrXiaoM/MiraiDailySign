@@ -3,12 +3,16 @@ package top.mrxiaom.mirai.dailysign.data
 import kotlinx.serialization.Serializable
 import net.mamoe.mirai.console.data.AutoSavePluginData
 import net.mamoe.mirai.console.data.value
-import java.util.Calendar
+import net.mamoe.mirai.console.util.ConsoleExperimentalApi
 import java.util.Calendar.*
 
 class SignUser(
     val id: Long
 ) : AutoSavePluginData(id.toString()) {
+
+    @ConsoleExperimentalApi
+    override fun shouldPerformAutoSaveWheneverChanged(): Boolean = false
+
     @Serializable
     class SignInfo(
         var lastSignYear: Int = 1970,
