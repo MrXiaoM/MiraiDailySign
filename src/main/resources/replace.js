@@ -1,4 +1,4 @@
-function replace(s, event) {
+function replace(s, event, config) {
     let d = new Date();
     let group = event.getGroup();
     let sender = event.getSender();

@@ -59,13 +59,13 @@ object MiraiDailySign : KotlinPlugin(
         replaceScript = replaceScriptFile.readText()
     }
 
-    fun runReplaceScript(s: String, event: GroupMessageEvent): String = Context.enter().use {
+    fun runReplaceScript(s: String, event: GroupMessageEvent, config: DailySignConfig): String = Context.enter().use {
         val scope = it.initStandardObjects()
         ScriptableObject.putProperty(scope, "javaContext", Context.javaToJS(this, scope))
         ScriptableObject.putProperty(scope, "javaLoader", Context.javaToJS(this::class.java.classLoader, scope))
         it.evaluateString(scope, replaceScript, "MiraiDailySign", 1, null)
         val function = scope.get("replace", scope) as Function
-        return@use function.call(it, scope, scope, arrayOf(s, event)).toString()
+        return@use function.call(it, scope, scope, arrayOf(s, event, config)).toString()
     }
 
     fun reloadConfig() {

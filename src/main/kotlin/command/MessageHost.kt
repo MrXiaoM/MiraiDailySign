@@ -87,7 +87,7 @@ object MessageHost : SimpleListenerHost() {
             config.successMessage.joinToString("\n")
                 .replace("\$lasting", info.lastingSignDays.toString())
                 .replace("\$rewards", rewards.joinToString()),
-            event
+            event, config
         )
         // 替换富文本变量 (头像、@、回复等)
         event.group.sendMessage(replaceRichVariable(msg, event.group, event.sender, QuoteReply(event.source)))
@@ -99,7 +99,7 @@ object MessageHost : SimpleListenerHost() {
         // 通过js替换变量
         val msg = main.runReplaceScript(
             config.alreadySignMessage.joinToString("\n"),
-            event
+            event, config
         )
         // 替换富文本变量 (头像、@、回复等)
         event.group.sendMessage(replaceRichVariable(msg, event.group, event.sender, QuoteReply(event.source)))
