@@ -18,9 +18,8 @@ import net.mamoe.mirai.message.data.MessageChain
 import net.mamoe.mirai.message.data.MessageChain.Companion.serializeToJsonString
 import net.mamoe.mirai.message.data.PlainText
 import net.mamoe.mirai.utils.info
-import org.mozilla.javascript.Context
+import org.mozilla.javascript.*
 import org.mozilla.javascript.Function
-import org.mozilla.javascript.ScriptableObject
 import top.mrxiaom.mirai.dailysign.command.ConsoleCommand
 import top.mrxiaom.mirai.dailysign.command.MessageHost
 import top.mrxiaom.mirai.dailysign.config.DailySignConfig
@@ -63,24 +62,39 @@ object MiraiDailySign : KotlinPlugin(
         }
         replaceScript = replaceScriptFile.readText()
     }
-    fun ScriptableObject.put(name: String, obj: Any) {
+    private fun ScriptableObject.put(name: String, obj: Any) {
         ScriptableObject.putProperty(this, name, Context.javaToJS(obj, this))
     }
     fun runReplaceScript(s: String, event: GroupMessageEvent, config: DailySignConfig): String = Context.enter().use {
-        val scope = it.initStandardObjects()
-        scope.put("version", version.toString())
-        scope.put("sender", event.sender)
-        scope.put("subject", event.subject)
-        scope.put("time", event.time)
-        scope.put("bot", event.bot)
-        scope.put("message", event.message)
-        scope.put("source", event.source)
-        scope.put("config", config)
-        scope.put("javaContext", this)
-        scope.put("javaLoader", this::class.java.classLoader)
-        it.evaluateString(scope, replaceScript, "MiraiDailySign", 1, null)
-        val function = scope.get("replace", scope) as Function
-        return@use function.call(it, scope, scope, arrayOf(s)).toString()
+        try {
+            val scope = it.initStandardObjects()
+            scope.put("version", version.toString())
+            scope.put("javaContext", this)
+            scope.put("javaLoader", this::class.java.classLoader)
+            it.evaluateString(scope, replaceScript, "MiraiDailySign", 1, null)
+            val function = scope.get("replace", scope) as Function
+            return@use function.call(
+                it,
+                scope,
+                scope,
+                arrayOf(s, Context.javaToJS(event, scope), Context.javaToJS(config, scope))
+            ).toString()
+        } catch (t: Throwable) {
+            logger.warning(
+                "替换变量时，config/top.mrxiaom.mirai.dailysign/replace.js 发生一个异常",
+                t.find<EvaluatorException>() ?: t.find<JavaScriptException>() ?: t.find<EcmaError>() ?: t
+            )
+            return "$s\n(变量替换异常，请联系机器人管理员)"
+        }
+    }
+
+    private inline fun <reified T : Throwable> Throwable.find(): T? {
+        var throwable: Throwable? = this
+        while (throwable != null) {
+            throwable = throwable.cause
+            if (throwable is T) return throwable
+        }
+        return null
     }
 
     fun reloadConfig() {
@@ -106,7 +120,7 @@ object MiraiDailySign : KotlinPlugin(
         }
     }
 
-    fun DailySignConfig.addToList(): DailySignConfig {
+    private fun DailySignConfig.addToList(): DailySignConfig {
         loadedConfigs.add(this)
         return this
     }
