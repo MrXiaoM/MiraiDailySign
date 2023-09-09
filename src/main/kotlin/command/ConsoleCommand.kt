@@ -3,7 +3,6 @@ package top.mrxiaom.mirai.dailysign.command
 import net.mamoe.mirai.console.command.CommandSender
 import net.mamoe.mirai.console.command.CompositeCommand
 import net.mamoe.mirai.console.command.ConsoleCommandSender
-import net.mamoe.mirai.console.command.SimpleCommand
 import top.mrxiaom.mirai.dailysign.MiraiDailySign
 
 object ConsoleCommand : CompositeCommand(

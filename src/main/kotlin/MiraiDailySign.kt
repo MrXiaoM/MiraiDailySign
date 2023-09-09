@@ -1,22 +1,12 @@
 package top.mrxiaom.mirai.dailysign
 
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
 import net.mamoe.mirai.console.command.CommandManager.INSTANCE.register
 import net.mamoe.mirai.console.plugin.jvm.JvmPluginDescription
 import net.mamoe.mirai.console.plugin.jvm.KotlinPlugin
 import net.mamoe.mirai.console.plugin.jvm.savePluginConfig
 import net.mamoe.mirai.console.plugin.version
-import net.mamoe.mirai.contact.Group
-import net.mamoe.mirai.contact.nameCardOrNick
-import net.mamoe.mirai.event.events.GroupAwareMessageEvent
 import net.mamoe.mirai.event.events.GroupMessageEvent
-import net.mamoe.mirai.event.events.MessageEvent
 import net.mamoe.mirai.event.globalEventChannel
-import net.mamoe.mirai.message.data.At
-import net.mamoe.mirai.message.data.MessageChain
-import net.mamoe.mirai.message.data.MessageChain.Companion.serializeToJsonString
-import net.mamoe.mirai.message.data.PlainText
 import net.mamoe.mirai.utils.info
 import org.mozilla.javascript.*
 import org.mozilla.javascript.Function
