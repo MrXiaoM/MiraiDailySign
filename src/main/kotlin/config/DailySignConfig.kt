@@ -22,13 +22,16 @@ import xyz.cssxsh.mirai.economy.service.EconomyCurrency
 import kotlin.random.Random
 
 class DailySignConfig(
-    fileName: String = "default"
+    val fileName: String = "default"
 ) : ReadOnlyPluginConfig("groups/$fileName") {
+    @ValueName("global")
+    @ValueDescription("该配置是否为全局配置，全局签到的统计数据在所有群通用，关闭此项后签到将视为在某群签到，签到天数等统计数据独立")
+    val global by value(true)
     @ValueName("at")
     @ValueDescription("需要 @ 机器人才能签到")
     val at by value(true)
     @ValueName("keywords")
-    @ValueDescription("签到命令关键词")
+    @ValueDescription("签到命令关键词，关键词会忽略消息前后空格")
     val keywords by value(listOf("签到"))
     @ValueName("permission")
     @ValueDescription("签到所需权限，留空为不需要权限\n" +
@@ -141,9 +144,6 @@ class DailySignConfig(
         return result
     }
 }
-@OptIn(ConsoleExperimentalApi::class)
-val DailySignConfig.isDefaultConfig: Boolean
-    get() = saveName == "default"
 
 interface IMoney{
     operator fun invoke(): Double

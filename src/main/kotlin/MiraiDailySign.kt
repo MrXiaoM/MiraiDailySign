@@ -35,8 +35,7 @@ object MiraiDailySign : KotlinPlugin(
     }
 ) {
     val loadedUsers = mutableMapOf<Long, SignUser>()
-    val loadedConfigs = mutableMapOf<Long, DailySignConfig>()
-    val defaultConfig by lazy { DailySignConfig() }
+    val loadedConfigs = mutableListOf<DailySignConfig>()
     val replaceScriptFile by lazy { File(configFolder, "replace.js") }
     var replaceScript = ""
     override fun onEnable() {
@@ -71,19 +70,23 @@ object MiraiDailySign : KotlinPlugin(
 
     fun reloadConfig() {
         reloadReplaceScript()
-        defaultConfig.reload()
-        val groups = File(dataFolder, "groups").listFiles()?.mapNotNull {
-            it.nameWithoutExtension.toLongOrNull()
+        val files = File(dataFolder, "groups").listFiles()?.mapNotNull {
+            it.nameWithoutExtension
         } ?: listOf()
-        loadedConfigs.keys.filter { !groups.contains(it) }.forEach(loadedConfigs::remove)
-        for (group in groups) {
-            val config = loadedConfigs[group] ?: DailySignConfig(group.toString()).also { loadedConfigs[group] = it }
-            config.reload()
-            config.loadRewards()
+        if (files.isEmpty()) {
+            DailySignConfig("default").addToList()
+        } else {
+            loadedConfigs.filter { !files.contains(it.fileName) }.forEach(loadedConfigs::remove)
+            for (fileName in files) {
+                val config = loadedConfigs.firstOrNull { it.fileName == fileName } ?: DailySignConfig(fileName).addToList()
+                config.reload()
+                config.loadRewards()
+            }
         }
     }
+
+    fun DailySignConfig.addToList(): DailySignConfig {
+        loadedConfigs.add(this)
+        return this
+    }
 }
-
-fun Group.dailySign(): DailySignConfig = MiraiDailySign.loadedConfigs[id] ?: MiraiDailySign.defaultConfig
-fun GroupAwareMessageEvent.dailySign(): DailySignConfig = group.dailySign()
-

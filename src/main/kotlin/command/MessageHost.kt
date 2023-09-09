@@ -14,6 +14,7 @@ import top.mrxiaom.mirai.dailysign.*
 import top.mrxiaom.mirai.dailysign.config.DailySignConfig
 import top.mrxiaom.mirai.dailysign.config.isDefaultConfig
 import top.mrxiaom.mirai.dailysign.data.SignUser
+import top.mrxiaom.mirai.dailysign.utils.filterAt
 import top.mrxiaom.mirai.dailysign.utils.hasAtBot
 import top.mrxiaom.mirai.dailysign.utils.textOnly
 import top.mrxiaom.mirai.dailysign.utils.split
@@ -25,12 +26,18 @@ object MessageHost : SimpleListenerHost() {
 
     @EventHandler
     suspend fun GroupMessageEvent.listen() {
-        // 获取配置
-        val config = dailySign()
+        // 有 @ 其他人时跳过
+        if (message.filterAt { it.target != bot.id }.isNotEmpty()) return
+        // 遍历配置
+        for (config in main.loadedConfigs) {
+            if (processConfig(config)) return
+        }
+    }
+    suspend fun GroupMessageEvent.processConfig(config: DailySignConfig): Boolean {
         // at 检查
-        if (config.at && !hasAtBot()) return
+        if (config.at && !hasAtBot()) return false
         // 关键词检查
-        if (!config.keywords.contains(textOnly().trim())) return
+        if (!config.keywords.contains(textOnly().trim())) return false
         // 权限检查
         if (!config.hasPerm(sender)) {
             if (config.denyMessage.isNotEmpty()) {
@@ -38,38 +45,34 @@ object MessageHost : SimpleListenerHost() {
                     .replace("\$perm", main.id + ":" + config.permission)
                 group.sendMessage(replaceRichVariable(msg, group, sender, QuoteReply(source)))
             }
-            return
+            return true
         }
         // 获取用户
         val user = main.getUser(sender.id)
-        // 默认配置
-        if (config.isDefaultConfig) {
-            // 检查是否已签
-            if (user.global.hasSign()) {
-                sendAlreadySignMessage(config, this)
-                return
-            }
+        // 全局配置
+        if (config.global) {
             // 签到
             if (user.global.sign()) {
                 val reward = config.giveRewardsTo(group, sender)
                 sendSuccessMessage(config, user.global, reward, this)
+            } else {
+                sendAlreadySignMessage(config, this)
             }
         }
         // 特定配置
         else {
-            val info = user.groups[group.id]?: SignUser.SignInfo()
-            // 检查是否已签
-            if (info.hasSign()) {
-                sendAlreadySignMessage(config, this)
-                return
-            }
+            val info = user.groups[group.id] ?: SignUser.SignInfo()
             // 签到
             if (info.sign()) {
                 val reward = config.giveRewardsTo(group, sender)
                 sendSuccessMessage(config, info, reward, this)
                 user.groups[group.id] = info
+            } else {
+                // 发送已签到过的提示
+                sendAlreadySignMessage(config, this)
             }
         }
+        return true
     }
 
     suspend fun sendSuccessMessage(
@@ -79,24 +82,44 @@ object MessageHost : SimpleListenerHost() {
         event: GroupMessageEvent
     ) {
         val rewards = rewardInfo.map { config.getRewardTemple(it) }
+        // 通过js替换变量
         val msg = main.runReplaceScript(
             config.successMessage.joinToString("\n")
                 .replace("\$lasting", info.lastingSignDays.toString())
                 .replace("\$rewards", rewards.joinToString()),
             event
         )
+        // 替换富文本变量 (头像、@、回复等)
         event.group.sendMessage(replaceRichVariable(msg, event.group, event.sender, QuoteReply(event.source)))
     }
     suspend fun sendAlreadySignMessage(
         config: DailySignConfig,
         event: GroupMessageEvent
     ) {
+        // 通过js替换变量
         val msg = main.runReplaceScript(
             config.alreadySignMessage.joinToString("\n"),
             event
         )
+        // 替换富文本变量 (头像、@、回复等)
         event.group.sendMessage(replaceRichVariable(msg, event.group, event.sender, QuoteReply(event.source)))
     }
+
+    /**
+     * 替换富文本变量
+     *
+     * $quote 回复消息
+     *
+     * $at @user(好友无效)
+     *
+     * $avatar user的头像
+     *
+     * @param msg 原文本
+     * @param subject 联系人，如群聊或好友
+     * @param user 用户，如群员或好友
+     * @param quote 回复消息
+     * @return 替换完成的消息链
+     */
     fun replaceRichVariable(
         msg: String,
         subject: Contact,
