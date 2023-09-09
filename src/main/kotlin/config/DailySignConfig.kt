@@ -20,8 +20,8 @@ import xyz.cssxsh.mirai.economy.service.EconomyCurrency
 import kotlin.random.Random
 
 class DailySignConfig(
-    val groupId: String = "default"
-) : ReadOnlyPluginConfig("groups/$groupId") {
+    fileName: String = "default"
+) : ReadOnlyPluginConfig("groups/$fileName") {
     @ValueName("at")
     @ValueDescription("需要 @ 机器人才能签到")
     val at by value(true)
