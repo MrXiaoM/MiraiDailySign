@@ -31,5 +31,5 @@
 
 打开目录 `./config/top.mrxiaom.mirai.dailysign/groups/`，使用文本编辑器打开 `default.yml`，按照自己的需要修改配置项。
 
-如果你需要不同的群有不同的配置，请把 `default.yml` 复制改名为 `你的群号.yml` 再进行编辑。
+如果你需要不同配置，请把 `default.yml` 复制改名为 `任意名称.yml` 再进行编辑。
 
