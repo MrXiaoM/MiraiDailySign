@@ -72,8 +72,7 @@ class DailySignConfig(
         "\$namecardOrNick (\$id) 签到成功!",
         "今天你已连续签到 \$lasting 天! 获得了以下奖励",
         "\$rewards",
-        "",
-        "\$今天是\$date \$week \$time",
+        "今天是 \$date \$week \$time",
         "祝你有美好的一天"
     ))
     @ValueName("already-sign-message")
