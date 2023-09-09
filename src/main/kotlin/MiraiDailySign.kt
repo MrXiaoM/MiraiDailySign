@@ -72,7 +72,7 @@ object MiraiDailySign : KotlinPlugin(
 
     fun reloadConfig() {
         reloadReplaceScript()
-        val files = File(dataFolder, "groups").listFiles()?.mapNotNull {
+        val files = File(configFolder, "groups").listFiles { _, name -> name.endsWith(".yml") }?.mapNotNull {
             it.nameWithoutExtension
         } ?: listOf()
         if (files.isEmpty()) {
@@ -80,6 +80,7 @@ object MiraiDailySign : KotlinPlugin(
                 it.perm
                 savePluginConfig(it)
             }
+            logger.info("首次加载，释放默认配置文件")
         } else {
             loadedConfigs.filter { !files.contains(it.fileName) }.forEach(loadedConfigs::remove)
             for (fileName in files) {
@@ -88,6 +89,7 @@ object MiraiDailySign : KotlinPlugin(
                 config.loadRewards()
                 config.perm
             }
+            logger.info("已加载 ${loadedConfigs.size} 个配置")
         }
     }
 
