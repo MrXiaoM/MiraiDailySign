@@ -5,6 +5,7 @@ import kotlinx.coroutines.launch
 import net.mamoe.mirai.console.command.CommandManager.INSTANCE.register
 import net.mamoe.mirai.console.plugin.jvm.JvmPluginDescription
 import net.mamoe.mirai.console.plugin.jvm.KotlinPlugin
+import net.mamoe.mirai.console.plugin.jvm.savePluginConfig
 import net.mamoe.mirai.contact.Group
 import net.mamoe.mirai.event.events.GroupAwareMessageEvent
 import net.mamoe.mirai.event.events.GroupMessageEvent
@@ -75,7 +76,7 @@ object MiraiDailySign : KotlinPlugin(
             it.nameWithoutExtension
         } ?: listOf()
         if (files.isEmpty()) {
-            DailySignConfig("default").addToList()
+            DailySignConfig("default").addToList().also { savePluginConfig(it) }
         } else {
             loadedConfigs.filter { !files.contains(it.fileName) }.forEach(loadedConfigs::remove)
             for (fileName in files) {
