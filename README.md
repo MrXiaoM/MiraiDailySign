@@ -14,14 +14,18 @@
 * [x] 分经济上下文给予奖励
 * [x] 随机金钱
 * [ ] 连续签到奖励
-* [x] 月签到日历
-* [ ] 渲染月签到日历并发送
+* [x] 月签到月历
+* [ ] 渲染月签到月历并发送
 
 未经测试
 
 ## 安装
 
-到 [Releases](https://github.com/MrXiaoM/MiraiDailySign/releases) 下载插件并放入 plugins 文件夹进行安装
+首先下载并安装以下前置：
+* `必装` [mirai-economy-core](https://github.com/cssxsh/mirai-economy-core/releases) (经济核心)
+* `可选` [mirai-skia-plugin](https://github.com/cssxsh/mirai-skia-plugin/releases) (绘图前置，用于绘制签到月历)
+
+再到 [Releases](https://github.com/MrXiaoM/MiraiDailySign/releases) 下载插件并放入 plugins 文件夹进行安装
 
 > 保证你的 mirai 版本大于或等于 2.11.0  
 > 下载 MiraiDailySign-*.mirai2.jar  
