@@ -45,7 +45,7 @@ class SignUser(
         fun sign(): Boolean {
             if (hasSign()) return false
             val now = getInstance()
-            if (isLastingSign()) lastingSignDays++
+            if (isLastingSign() || lastingSignDays == 0) lastingSignDays++
             if (lastSignYear != now[YEAR] || lastSignMonth != now[MONTH]) signCalendarMonthly.clear()
             lastSignYear = now[YEAR]
             lastSignMonth = now[MONTH]
