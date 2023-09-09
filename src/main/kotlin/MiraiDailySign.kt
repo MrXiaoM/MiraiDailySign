@@ -76,13 +76,17 @@ object MiraiDailySign : KotlinPlugin(
             it.nameWithoutExtension
         } ?: listOf()
         if (files.isEmpty()) {
-            DailySignConfig("default").addToList().also { savePluginConfig(it) }
+            DailySignConfig("default").addToList().also {
+                it.perm
+                savePluginConfig(it)
+            }
         } else {
             loadedConfigs.filter { !files.contains(it.fileName) }.forEach(loadedConfigs::remove)
             for (fileName in files) {
                 val config = loadedConfigs.firstOrNull { it.fileName == fileName } ?: DailySignConfig(fileName).addToList()
                 config.reload()
                 config.loadRewards()
+                config.perm
             }
         }
     }

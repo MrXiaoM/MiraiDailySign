@@ -1,10 +1,8 @@
 package top.mrxiaom.mirai.dailysign.config
 
-import net.mamoe.mirai.console.data.ReadOnlyPluginConfig
-import net.mamoe.mirai.console.data.ValueDescription
-import net.mamoe.mirai.console.data.ValueName
-import net.mamoe.mirai.console.data.value
+import net.mamoe.mirai.console.data.*
 import net.mamoe.mirai.console.permission.AbstractPermitteeId
+import net.mamoe.mirai.console.permission.Permission
 import net.mamoe.mirai.console.permission.PermissionService.Companion.testPermission
 import net.mamoe.mirai.console.permission.PermitteeId
 import net.mamoe.mirai.console.util.ConsoleExperimentalApi
@@ -47,7 +45,9 @@ class DailySignConfig(
         以默认配置文件为例，需要权限 top.mrxiaom.mirai.dailysign:sign.default
     """)
     val permission by value("sign.\$file")
-    fun hasPerm(permitteeId: PermitteeId) : Boolean = PermissionHolder[permission].testPermission(permitteeId)
+    val perm: Permission
+        get() = PermissionHolder[permission.replace("\$file", fileName)]
+    fun hasPerm(permitteeId: PermitteeId) : Boolean = perm.testPermission(permitteeId)
     fun hasPerm(member: Member) : Boolean = hasPerm(AbstractPermitteeId.ExactMember(member.group.id, member.id))
 
     @ValueName("deny-message")
