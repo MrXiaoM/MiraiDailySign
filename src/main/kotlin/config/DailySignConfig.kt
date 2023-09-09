@@ -152,7 +152,8 @@ fun String.toFixedMoney(): FixedMoney? {
     return FixedMoney(this.toDoubleOrNull() ?: return null)
 }
 fun String.toRandomMoney(): RandomMoney? {
-    return RandomMoney(
+    return if (!contains("-")) null
+    else RandomMoney(
         substringBefore("-").toIntOrNull() ?: return null,
         substringAfter("-").toIntOrNull() ?: return null
     )
