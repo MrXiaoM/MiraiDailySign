@@ -6,13 +6,16 @@ import net.mamoe.mirai.console.command.CommandManager.INSTANCE.register
 import net.mamoe.mirai.console.plugin.jvm.JvmPluginDescription
 import net.mamoe.mirai.console.plugin.jvm.KotlinPlugin
 import net.mamoe.mirai.console.plugin.jvm.savePluginConfig
+import net.mamoe.mirai.console.plugin.version
 import net.mamoe.mirai.contact.Group
+import net.mamoe.mirai.contact.nameCardOrNick
 import net.mamoe.mirai.event.events.GroupAwareMessageEvent
 import net.mamoe.mirai.event.events.GroupMessageEvent
 import net.mamoe.mirai.event.events.MessageEvent
 import net.mamoe.mirai.event.globalEventChannel
 import net.mamoe.mirai.message.data.At
 import net.mamoe.mirai.message.data.MessageChain
+import net.mamoe.mirai.message.data.MessageChain.Companion.serializeToJsonString
 import net.mamoe.mirai.message.data.PlainText
 import net.mamoe.mirai.utils.info
 import org.mozilla.javascript.Context
@@ -60,14 +63,24 @@ object MiraiDailySign : KotlinPlugin(
         }
         replaceScript = replaceScriptFile.readText()
     }
-
+    fun ScriptableObject.put(name: String, obj: Any) {
+        ScriptableObject.putProperty(this, name, obj)
+    }
     fun runReplaceScript(s: String, event: GroupMessageEvent, config: DailySignConfig): String = Context.enter().use {
         val scope = it.initStandardObjects()
-        ScriptableObject.putProperty(scope, "javaContext", Context.javaToJS(this, scope))
-        ScriptableObject.putProperty(scope, "javaLoader", Context.javaToJS(this::class.java.classLoader, scope))
+        scope.put("version", version.toString())
+        scope.put("sender", event.sender)
+        scope.put("subject", event.subject)
+        scope.put("time", event.time)
+        scope.put("bot", event.bot)
+        scope.put("message", event.message)
+        scope.put("source", event.source)
+        scope.put("config", config)
+        scope.put("javaContext", Context.javaToJS(this, scope))
+        scope.put("javaLoader", Context.javaToJS(this::class.java.classLoader, scope))
         it.evaluateString(scope, replaceScript, "MiraiDailySign", 1, null)
         val function = scope.get("replace", scope) as Function
-        return@use function.call(it, scope, scope, arrayOf(s, event, config)).toString()
+        return@use function.call(it, scope, scope, arrayOf(s)).toString()
     }
 
     fun reloadConfig() {
