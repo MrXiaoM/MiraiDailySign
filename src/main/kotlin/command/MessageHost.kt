@@ -12,7 +12,6 @@ import net.mamoe.mirai.event.events.GroupMessageEvent
 import net.mamoe.mirai.message.data.*
 import top.mrxiaom.mirai.dailysign.*
 import top.mrxiaom.mirai.dailysign.config.DailySignConfig
-import top.mrxiaom.mirai.dailysign.config.isDefaultConfig
 import top.mrxiaom.mirai.dailysign.data.SignUser
 import top.mrxiaom.mirai.dailysign.utils.filterAt
 import top.mrxiaom.mirai.dailysign.utils.hasAtBot
