@@ -47,7 +47,10 @@ object MessageHost : SimpleListenerHost() {
         val global = PluginConfig.calendarKeywordsGlobal.contains(textOnly)
         if (!global && !PluginConfig.calendarKeywords.contains(textOnly)) return false
         // 权限检查
-        if (PluginConfig.calendarPermission && !PermissionHolder["calendar"].testPermission(sender.permitteeId)) return false
+        if (PluginConfig.calendarPermission && !PermissionHolder["calendar"].testPermission(sender.permitteeId)) {
+            main.logger.info("m${subject.id}.${sender.id} 没有权限 calendar")
+            return false
+        }
         // 获取用户
         val user = main.getUser(sender.id)
         var data = if (global) user.global else user.groups[group.id]
@@ -72,9 +75,11 @@ object MessageHost : SimpleListenerHost() {
         // 权限检查
         if (!config.hasPerm(sender)) {
             if (config.denyMessage.isNotEmpty()) {
-                val msg = config.denyMessage.joinToString()
-                    .replace("\$perm", main.id + ":" + config.permission)
+                val msg = config.denyMessage.joinToString("\n")
+                    .replace("\$perm", main.id + ":" + config.perm.id.toString())
                 group.sendMessage(replaceRichVariable(msg, group, sender, QuoteReply(source)))
+            } else {
+                main.logger.info("m${subject.id}.${sender.id} 没有权限 ${config.perm.id.name}")
             }
             return true
         }
