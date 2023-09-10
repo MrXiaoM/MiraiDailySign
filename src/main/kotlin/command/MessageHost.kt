@@ -12,16 +12,14 @@ import net.mamoe.mirai.event.EventHandler
 import net.mamoe.mirai.event.SimpleListenerHost
 import net.mamoe.mirai.event.events.GroupMessageEvent
 import net.mamoe.mirai.message.data.*
+import net.mamoe.mirai.utils.ExternalResource.Companion.toExternalResource
 import top.mrxiaom.mirai.dailysign.MiraiDailySign
 import top.mrxiaom.mirai.dailysign.MiraiDailySign.save
 import top.mrxiaom.mirai.dailysign.PermissionHolder
 import top.mrxiaom.mirai.dailysign.config.DailySignConfig
 import top.mrxiaom.mirai.dailysign.config.PluginConfig
 import top.mrxiaom.mirai.dailysign.data.SignUser
-import top.mrxiaom.mirai.dailysign.utils.filterAt
-import top.mrxiaom.mirai.dailysign.utils.hasAtBot
-import top.mrxiaom.mirai.dailysign.utils.split
-import top.mrxiaom.mirai.dailysign.utils.textOnly
+import top.mrxiaom.mirai.dailysign.utils.*
 import java.net.URL
 
 typealias main = MiraiDailySign
@@ -146,6 +144,8 @@ object MessageHost : SimpleListenerHost() {
      *
      * $avatar user的头像
      *
+     * $image 特殊图片
+     *
      * @param msg 原文本
      * @param subject 联系人，如群聊或好友
      * @param user 用户，如群员或好友
@@ -156,10 +156,11 @@ object MessageHost : SimpleListenerHost() {
         msg: String,
         subject: Contact,
         user: User,
-        quote: QuoteReply? = null
+        quote: QuoteReply? = null,
+        image: ByteArray? = null
     ): MessageChain = mutableListOf<SingleMessage>().also {
         if (quote != null && msg.contains("\$quote")) it.add(quote)
-        it.addAll(Regex("\\\$at|\\\$avatar").split<SingleMessage>(msg.replace("\$quote", "")) { s, isMatched ->
+        it.addAll(Regex("\\\$at|\\\$avatar|\\\$image").split<SingleMessage>(msg.replace("\$quote", "")) { s, isMatched ->
             if (!isMatched) PlainText(s)
             else when (s) {
                 "\$at" -> At(user.id)
@@ -169,6 +170,15 @@ object MessageHost : SimpleListenerHost() {
                     } catch (_: Throwable) {
                         PlainText(user.id.toString())
                     }
+                }
+                "\$image" -> runBlocking(Dispatchers.IO) {
+                    if (image != null) try {
+                        return@runBlocking image.toExternalResource().use { res ->
+                            subject.uploadImage(res)
+                        }
+                    } catch (_: Throwable) {
+                    }
+                    PlainText("undefined")
                 }
 
                 else -> PlainText(s)
