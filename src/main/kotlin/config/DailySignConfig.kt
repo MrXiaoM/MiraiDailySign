@@ -46,7 +46,7 @@ class DailySignConfig(
     """)
     val permission by value("sign.\$file")
     val perm: Permission
-        get() = PermissionHolder[permission.replace("\$file", fileName)]
+        get() = PermissionHolder[permission.replace("\$file", fileName), "签到配置${fileName}触发权限"]
     fun hasPerm(permitteeId: PermitteeId) : Boolean = perm.testPermission(permitteeId)
     fun hasPerm(member: Member) : Boolean = hasPerm(AbstractPermitteeId.ExactMember(member.group.id, member.id))
 
