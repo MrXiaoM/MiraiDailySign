@@ -49,7 +49,7 @@ object MessageHost : SimpleListenerHost() {
         // 权限检查
         if (PluginConfig.calendarPermission && !PermissionHolder["calendar"].testPermission(sender.permitteeId)) {
             main.logger.info("m${subject.id}.${sender.id} 没有权限 calendar")
-            return false
+            return true
         }
         // 获取用户
         val user = main.getUser(sender.id)
