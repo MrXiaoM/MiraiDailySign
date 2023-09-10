@@ -1,16 +1,19 @@
 package top.mrxiaom.mirai.dailysign.utils
 
+import net.mamoe.mirai.utils.ExternalResource
+import org.jetbrains.skia.EncodedImageFormat
 import org.jetbrains.skia.Surface
+import xyz.cssxsh.mirai.skia.makeSnapshotResource
 
 class SurfaceHelper {
     lateinit var surface: Surface
-
+    var format = EncodedImageFormat.PNG
     fun init(width: Int, height: Int) {
         surface = Surface.makeRasterN32Premul(width, height)
     }
 
-    fun toByteArray(): ByteArray? {
+    fun toExternalResource(): ExternalResource? {
         if (!this::surface.isInitialized) return null
-        TODO("渲染并导出图片")
+        return surface.makeSnapshotResource(format)
     }
 }

@@ -12,8 +12,9 @@ import net.mamoe.mirai.event.EventHandler
 import net.mamoe.mirai.event.SimpleListenerHost
 import net.mamoe.mirai.event.events.GroupMessageEvent
 import net.mamoe.mirai.message.data.*
+import net.mamoe.mirai.utils.ExternalResource
 import net.mamoe.mirai.utils.ExternalResource.Companion.toExternalResource
-import org.jetbrains.skia.Surface
+import net.mamoe.mirai.utils.ExternalResource.Companion.uploadAsImage
 import top.mrxiaom.mirai.dailysign.MiraiDailySign
 import top.mrxiaom.mirai.dailysign.MiraiDailySign.save
 import top.mrxiaom.mirai.dailysign.PermissionHolder
@@ -58,7 +59,7 @@ object MessageHost : SimpleListenerHost() {
 
         val surface = SurfaceHelper()
         main.runInJavaScript(this, "signCalendar", surface, data)
-        val image = surface.toByteArray()
+        val image = surface.toExternalResource()
 
         group.sendMessage(replaceRichVariable(PluginConfig.calendar.joinToString("\n"), subject, sender, QuoteReply(source), image))
         return true
@@ -163,7 +164,7 @@ object MessageHost : SimpleListenerHost() {
         subject: Contact,
         user: User,
         quote: QuoteReply? = null,
-        image: ByteArray? = null
+        image: ExternalResource? = null
     ): MessageChain = mutableListOf<SingleMessage>().also {
         if (quote != null && msg.contains("\$quote")) it.add(quote)
         it.addAll(Regex("\\\$at|\\\$avatar|\\\$image").split<SingleMessage>(msg.replace("\$quote", "")) { s, isMatched ->
@@ -178,9 +179,9 @@ object MessageHost : SimpleListenerHost() {
                     }
                 }
                 "\$image" -> runBlocking(Dispatchers.IO) {
-                    if (image != null) try {
-                        return@runBlocking image.toExternalResource().use { res ->
-                            subject.uploadImage(res)
+                    try {
+                        image?.uploadAsImage(subject)?.also { img ->
+                            return@runBlocking img
                         }
                     } catch (_: Throwable) {
                     }
