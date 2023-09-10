@@ -63,7 +63,7 @@ object MiraiDailySign : KotlinPlugin(
     private fun ScriptableObject.put(name: String, obj: Any) {
         ScriptableObject.putProperty(this, name, Context.javaToJS(obj, this))
     }
-    fun runReplaceScript(event: GroupMessageEvent, funcName: String, vararg args: Any): String? = Context.enter().use {
+    fun runInJavaScript(event: GroupMessageEvent, funcName: String, vararg args: Any): String? = Context.enter().use {
         try {
             val scope = it.initStandardObjects()
             scope.put("version", version.toString())

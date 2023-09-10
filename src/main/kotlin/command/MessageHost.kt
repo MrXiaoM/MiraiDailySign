@@ -57,7 +57,7 @@ object MessageHost : SimpleListenerHost() {
         }
 
         val surface = SurfaceHelper()
-        main.runReplaceScript(this, "signCalendar", surface, data)
+        main.runInJavaScript(this, "signCalendar", surface, data)
         val image = surface.toByteArray()
 
         group.sendMessage(replaceRichVariable(PluginConfig.calendar.joinToString("\n"), subject, sender, QuoteReply(source), image))
@@ -118,7 +118,7 @@ object MessageHost : SimpleListenerHost() {
         var msg = config.successMessage.joinToString("\n")
             .replace("\$lasting", info.lastingSignDays.toString())
             .replace("\$rewards", rewards.joinToString())
-        main.runReplaceScript(
+        main.runInJavaScript(
             event, "replace", msg, config
         )?.also { msg = it } ?: kotlin.run {
             msg += "\n(替换变量时出现异常，请联系机器人管理员)"
@@ -132,7 +132,7 @@ object MessageHost : SimpleListenerHost() {
     ) {
         // 通过js替换变量
         var msg = config.alreadySignMessage.joinToString("\n")
-        main.runReplaceScript(
+        main.runInJavaScript(
             event, "replace", msg, config
         )?.also { msg = it } ?: kotlin.run {
             msg += "\n(替换变量时出现异常，请联系机器人管理员)"
