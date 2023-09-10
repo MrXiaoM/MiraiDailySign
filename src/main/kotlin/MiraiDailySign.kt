@@ -63,7 +63,7 @@ object MiraiDailySign : KotlinPlugin(
     private fun ScriptableObject.put(name: String, obj: Any) {
         ScriptableObject.putProperty(this, name, Context.javaToJS(obj, this))
     }
-    fun runReplaceScript(s: String, event: GroupMessageEvent, config: DailySignConfig): String = Context.enter().use {
+    fun runReplaceScript(event: GroupMessageEvent, funcName: String, vararg args: Any): String? = Context.enter().use {
         try {
             val scope = it.initStandardObjects()
             scope.put("version", version.toString())
@@ -74,18 +74,17 @@ object MiraiDailySign : KotlinPlugin(
             scope.put("bot", event.bot)
             scope.put("message", event.message)
             scope.put("source", event.source)
-            scope.put("config", config)
             scope.put("javaContext", this)
             scope.put("javaLoader", this::class.java.classLoader)
             it.evaluateString(scope, replaceScript, "MiraiDailySign", 1, null)
-            val function = scope.get("replace", scope) as Function
-            return@use function.call(it, scope, scope, arrayOf(s)).toString()
+            val function = scope.get(funcName, scope) as Function
+            return@use function.call(it, scope, scope, args).toString()
         } catch (t: Throwable) {
             logger.warning(
-                "替换变量时，config/top.mrxiaom.mirai.dailysign/replace.js 发生一个异常",
+                "执行  时，config/top.mrxiaom.mirai.dailysign/replace.js 发生一个异常",
                 t.find<EvaluatorException>() ?: t.find<JavaScriptException>() ?: t.find<EcmaError>() ?: t
             )
-            return "$s\n(变量替换异常，请联系机器人管理员)"
+            return null
         }
     }
 

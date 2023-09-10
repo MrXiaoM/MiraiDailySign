@@ -9,7 +9,6 @@
 // bot: 机器人
 // message: 消息，建议 JSON.parse(message.serializeToJsonString()) 或 message.toString()
 // source: 消息源
-// config: 签到配置
 
 // 使用 Object.keys(变量) 可以查看 变量 的所有键，使用 logger.info(内容); 可以把日志内容打印到控制台。
 // java/kotlin/javascript 的编写方法各不相同，调用前请先查看相关的键。
@@ -17,7 +16,7 @@
 //////////////////[ MiraiDailySign ]/////////////////////
 
 // 替换变量的主方法，方法名以及参数不可更改
-function replace(s) {
+function replace(s, config) {
     var d = new Date();
     var nameCardOrNick = sender.nameCard;
     if (nameCardOrNick == "") {
@@ -64,4 +63,9 @@ function getFromInternet() {
     } catch (e) {
         return e;
     }
+}
+
+// 渲染签到日历图片的主方法，方法名以及参数不可更改
+function signCalendar() {
+
 }
