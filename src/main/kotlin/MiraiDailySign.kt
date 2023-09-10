@@ -36,9 +36,10 @@ object MiraiDailySign : KotlinPlugin(
     val scriptLogger = MiraiLogger.Factory.create(this::class, "MiraiDailySignScript")
     val loadedUsers = mutableMapOf<Long, SignUser>()
     val loadedConfigs = mutableListOf<DailySignConfig>()
-    val replaceScriptFile by lazy { File(configFolder, "replace.js") }
+    val replaceScriptFile by lazy { File(configFolder, "script.js") }
     var replaceScript = ""
     override fun onEnable() {
+        PermissionHolder["calendar", "每月签到日历触发权限"]
         reloadConfig()
         ConsoleCommand.register()
         globalEventChannel().registerListenerHost(MessageHost)
@@ -50,13 +51,14 @@ object MiraiDailySign : KotlinPlugin(
         return loadedUsers[id] ?: SignUser(id).also { loadedUsers[id] = it }
     }
 
-    fun reloadReplaceScript() {
+    fun reloadScript() {
         if (!replaceScriptFile.exists()) {
             replaceScriptFile.writeText(
-                getResource("replace.js") ?: "// `replace.js` not found.\n"
+                getResource("script.js") ?: "// `script.js` not found.\n"
             )
         }
         replaceScript = replaceScriptFile.readText()
+        logger.info("脚本 script.js 重载完成")
     }
     private fun ScriptableObject.put(name: String, obj: Any) {
         ScriptableObject.putProperty(this, name, Context.javaToJS(obj, this))
@@ -97,7 +99,7 @@ object MiraiDailySign : KotlinPlugin(
     }
 
     fun reloadConfig() {
-        reloadReplaceScript()
+        reloadScript()
         val files = File(configFolder, "groups").listFiles { _, name -> name.endsWith(".yml") }?.mapNotNull {
             it.nameWithoutExtension
         } ?: listOf()
