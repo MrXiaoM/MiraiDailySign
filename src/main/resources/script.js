@@ -68,6 +68,54 @@ function getFromInternet() {
 // 渲染签到日历图片的主方法，方法名以及参数不可更改
 function signCalendar(p, data) {
     // 初始化画布
-    p.init(400, 200);
-    // TODO: 绘制日历图片
+    p.init(400, 300);
+
+    var d = new Date();
+    var isThisMonth = d.getFullYear() == data.lastSignYear && (d.getMonth() + 1) == data.lastSignMonth;
+    var maxDate = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+    var cDate = d.getDate();
+    // week == 0 是星期天
+    var cWeek = d.getDay();
+
+    var list = [];
+    var addDate = function() {
+        var status = "unknown";
+        // 检测已签到
+        if (isThisMonth && data.signCalendarMonthly.contains(cDate)) status = "yes";
+        // 检测未签到
+        if (status == "unknown" && cDate < d.getDate()) status = "no";
+
+        list.push({
+            "day": cDate, "week": cWeek, "status": status
+        });
+    }
+
+    while (cDate >= 1) {
+        addDate();
+        cWeek--;
+        if (cWeek < 0) cWeek = 6;
+        cDate--;
+    }
+    list.reverse();
+    cDate = d.getDate();
+    cWeek = d.getDay();
+    while (cDate < maxDate) {
+        addDate();
+        cWeek++;
+        if (cWeek > 6) cWeek = 0;
+        cDate++;
+    }
+
+    var font = p.font("黑体", "NORMAL", 20);
+    // 颜色是 ARGB 格式
+    var bgColor = p.paint("#FFF3D8D1");
+    var textColor = p.paint("#FFFF0000");
+    p.clear(bgColor);
+    p.drawTextLine("连续签到 " + data.lastingSignDays + " 天", font, 20, 20, textColor);
+
+    var line = 0;
+    for (obj in list) {
+        if (obj.week == 0) line++;
+        // TODO 渲染日期
+    }
 }
