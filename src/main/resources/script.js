@@ -66,6 +66,8 @@ function getFromInternet() {
 }
 
 // 渲染签到日历图片的主方法，方法名以及参数不可更改
-function signCalendar() {
-
+function signCalendar(p, data) {
+    // 初始化画布
+    p.init(400, 200)
+    // TODO: 绘制日历图片
 }

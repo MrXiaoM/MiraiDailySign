@@ -81,7 +81,7 @@ object MiraiDailySign : KotlinPlugin(
             return@use function.call(it, scope, scope, args).toString()
         } catch (t: Throwable) {
             logger.warning(
-                "执行  时，config/top.mrxiaom.mirai.dailysign/replace.js 发生一个异常",
+                "执行 $funcName 时，config/top.mrxiaom.mirai.dailysign/replace.js 发生一个异常",
                 t.find<EvaluatorException>() ?: t.find<JavaScriptException>() ?: t.find<EcmaError>() ?: t
             )
             return null

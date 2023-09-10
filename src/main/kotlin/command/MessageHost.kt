@@ -13,6 +13,7 @@ import net.mamoe.mirai.event.SimpleListenerHost
 import net.mamoe.mirai.event.events.GroupMessageEvent
 import net.mamoe.mirai.message.data.*
 import net.mamoe.mirai.utils.ExternalResource.Companion.toExternalResource
+import org.jetbrains.skia.Surface
 import top.mrxiaom.mirai.dailysign.MiraiDailySign
 import top.mrxiaom.mirai.dailysign.MiraiDailySign.save
 import top.mrxiaom.mirai.dailysign.PermissionHolder
@@ -54,7 +55,12 @@ object MessageHost : SimpleListenerHost() {
             // user.global 不可能为 null，若 data 为 null，必是 user.groups[group.id] 为 null
             user.groups[group.id] = data
         }
-        // TODO 绘制日历图片并发送
+
+        val surface = SurfaceHelper()
+        main.runReplaceScript(this, "signCalendar", surface, data)
+        val image = surface.toByteArray()
+
+        group.sendMessage(replaceRichVariable(PluginConfig.calendar.joinToString("\n"), subject, sender, QuoteReply(source), image))
         return true
     }
     private suspend fun GroupMessageEvent.processConfig(config: DailySignConfig): Boolean {
