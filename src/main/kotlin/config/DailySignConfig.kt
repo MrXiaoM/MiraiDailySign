@@ -69,7 +69,7 @@ class DailySignConfig(
     val successMessage by value(listOf(
         "\$quote",
         "\$avatar",
-        "\$namecardOrNick (\$id) 签到成功!",
+        "\$nameCardOrNick (\$id) 签到成功!",
         "今天你已连续签到 \$lasting 天! 获得了以下奖励",
         "\$rewards",
         "今天是 \$date \$week \$time",

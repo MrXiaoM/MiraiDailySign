@@ -5,8 +5,11 @@ import net.mamoe.mirai.console.plugin.jvm.JvmPluginDescription
 import net.mamoe.mirai.console.plugin.jvm.KotlinPlugin
 import net.mamoe.mirai.console.plugin.jvm.savePluginConfig
 import net.mamoe.mirai.console.plugin.version
+import net.mamoe.mirai.contact.nameCardOrNick
 import net.mamoe.mirai.event.events.GroupMessageEvent
 import net.mamoe.mirai.event.globalEventChannel
+import net.mamoe.mirai.message.data.MessageChain.Companion.serializeToJsonString
+import net.mamoe.mirai.utils.MiraiLogger
 import net.mamoe.mirai.utils.info
 import org.mozilla.javascript.*
 import org.mozilla.javascript.Function
@@ -15,6 +18,8 @@ import top.mrxiaom.mirai.dailysign.command.MessageHost
 import top.mrxiaom.mirai.dailysign.config.DailySignConfig
 import top.mrxiaom.mirai.dailysign.data.SignUser
 import java.io.File
+import java.net.URL
+import java.nio.charset.StandardCharsets
 
 object MiraiDailySign : KotlinPlugin(
     JvmPluginDescription(
@@ -28,6 +33,7 @@ object MiraiDailySign : KotlinPlugin(
         dependsOn("xyz.cssxsh.mirai.plugin.mirai-skia-plugin", ">= 1.1.0", true)
     }
 ) {
+    val scriptLogger = MiraiLogger.Factory.create(this::class, "MiraiDailySignScript")
     val loadedUsers = mutableMapOf<Long, SignUser>()
     val loadedConfigs = mutableListOf<DailySignConfig>()
     val replaceScriptFile by lazy { File(configFolder, "replace.js") }
@@ -59,16 +65,19 @@ object MiraiDailySign : KotlinPlugin(
         try {
             val scope = it.initStandardObjects()
             scope.put("version", version.toString())
+            scope.put("logger", scriptLogger)
+            scope.put("sender", event.sender)
+            scope.put("subject", event.subject)
+            scope.put("time", event.time)
+            scope.put("bot", event.bot)
+            scope.put("message", event.message)
+            scope.put("source", event.source)
+            scope.put("config", config)
             scope.put("javaContext", this)
             scope.put("javaLoader", this::class.java.classLoader)
             it.evaluateString(scope, replaceScript, "MiraiDailySign", 1, null)
             val function = scope.get("replace", scope) as Function
-            return@use function.call(
-                it,
-                scope,
-                scope,
-                arrayOf(s, Context.javaToJS(event, scope), Context.javaToJS(config, scope))
-            ).toString()
+            return@use function.call(it, scope, scope, arrayOf(s)).toString()
         } catch (t: Throwable) {
             logger.warning(
                 "替换变量时，config/top.mrxiaom.mirai.dailysign/replace.js 发生一个异常",
