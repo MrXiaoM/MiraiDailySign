@@ -5,6 +5,7 @@ import net.mamoe.mirai.console.permission.AbstractPermitteeId
 import net.mamoe.mirai.console.permission.Permission
 import net.mamoe.mirai.console.permission.PermissionService.Companion.testPermission
 import net.mamoe.mirai.console.permission.PermitteeId
+import net.mamoe.mirai.console.permission.PermitteeId.Companion.permitteeId
 import net.mamoe.mirai.console.util.ConsoleExperimentalApi
 import net.mamoe.mirai.contact.Group
 import net.mamoe.mirai.contact.Member
@@ -48,7 +49,7 @@ class DailySignConfig(
     val perm: Permission
         get() = PermissionHolder[permission.replace("\$file", fileName), "签到配置${fileName}触发权限"]
     fun hasPerm(permitteeId: PermitteeId) : Boolean = perm.testPermission(permitteeId)
-    fun hasPerm(member: Member) : Boolean = hasPerm(AbstractPermitteeId.ExactMember(member.group.id, member.id))
+    fun hasPerm(member: Member) : Boolean = hasPerm(member.permitteeId)
 
     @ValueName("deny-message")
     @ValueDescription("""

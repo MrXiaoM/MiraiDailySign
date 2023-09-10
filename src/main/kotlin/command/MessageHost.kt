@@ -2,6 +2,8 @@ package top.mrxiaom.mirai.dailysign.command
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
+import net.mamoe.mirai.console.permission.PermissionService.Companion.testPermission
+import net.mamoe.mirai.console.permission.PermitteeId.Companion.permitteeId
 import net.mamoe.mirai.console.plugin.id
 import net.mamoe.mirai.contact.Contact
 import net.mamoe.mirai.contact.Contact.Companion.uploadImage
@@ -12,7 +14,9 @@ import net.mamoe.mirai.event.events.GroupMessageEvent
 import net.mamoe.mirai.message.data.*
 import top.mrxiaom.mirai.dailysign.MiraiDailySign
 import top.mrxiaom.mirai.dailysign.MiraiDailySign.save
+import top.mrxiaom.mirai.dailysign.PermissionHolder
 import top.mrxiaom.mirai.dailysign.config.DailySignConfig
+import top.mrxiaom.mirai.dailysign.config.PluginConfig
 import top.mrxiaom.mirai.dailysign.data.SignUser
 import top.mrxiaom.mirai.dailysign.utils.filterAt
 import top.mrxiaom.mirai.dailysign.utils.hasAtBot
@@ -28,12 +32,34 @@ object MessageHost : SimpleListenerHost() {
     suspend fun GroupMessageEvent.listen() {
         // 有 @ 其他人时跳过
         if (message.filterAt { it.target != bot.id }.isNotEmpty()) return
+        // 月签到日历
+        if (processCalendar()) return
         // 遍历配置
         for (config in main.loadedConfigs) {
             if (processConfig(config)) return
         }
     }
-    suspend fun GroupMessageEvent.processConfig(config: DailySignConfig): Boolean {
+    private suspend fun GroupMessageEvent.processCalendar(): Boolean {
+        // at 检查
+        if (PluginConfig.calendarAt && !hasAtBot()) return false
+        // 关键词检查
+        val textOnly = textOnly().trim()
+        val global = PluginConfig.calendarKeywordsGlobal.contains(textOnly)
+        if (!global && !PluginConfig.calendarKeywords.contains(textOnly)) return false
+        // 权限检查
+        if (PluginConfig.calendarPermission && !PermissionHolder["calendar"].testPermission(sender.permitteeId)) return false
+        // 获取用户
+        val user = main.getUser(sender.id)
+        var data = if (global) user.global else user.groups[group.id]
+        if (data == null) {
+            data = SignUser.SignInfo()
+            // user.global 不可能为 null，若 data 为 null，必是 user.groups[group.id] 为 null
+            user.groups[group.id] = data
+        }
+        // TODO 绘制日历图片并发送
+        return true
+    }
+    private suspend fun GroupMessageEvent.processConfig(config: DailySignConfig): Boolean {
         // at 检查
         if (config.at && !hasAtBot()) return false
         // 关键词检查
