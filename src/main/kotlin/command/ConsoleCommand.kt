@@ -12,9 +12,14 @@ object ConsoleCommand : CompositeCommand(
     parentPermission = MiraiDailySign.parentPermission
 ) {
     @SubCommand("reload")
+    @Description("重载配置文件")
     suspend fun reload(sender: CommandSender) {
         MiraiDailySign.reloadConfig()
-        if (sender !is ConsoleCommandSender) sender.sendMessage("配置文件已重载")
-        MiraiDailySign.logger.info("配置文件已重载")
+        sender.log("配置文件已重载")
+    }
+
+    private suspend fun CommandSender.log(msg: String) {
+        if (this !is ConsoleCommandSender) sendMessage(msg)
+        MiraiDailySign.logger.info(msg)
     }
 }
