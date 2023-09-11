@@ -48,6 +48,8 @@ object MiraiDailySign : KotlinPlugin(
         skiaPluginLoaded = PluginManager.plugins.any { it.id == "xyz.cssxsh.mirai.plugin.mirai-skia-plugin" }
         if (!skiaPluginLoaded) {
             logger.warning("未发现前置插件 mirai-skia-plugin，月签到日历查询功能将不可用。")
+            logger.warning("你可以在以下链接下载该前置插件")
+            logger.warning("@see https://github.com/cssxsh/mirai-skia-plugin/releases")
         }
         PermissionHolder["calendar", "每月签到日历触发权限"]
         reloadConfig()
