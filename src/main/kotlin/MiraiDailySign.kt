@@ -5,10 +5,8 @@ import net.mamoe.mirai.console.plugin.jvm.JvmPluginDescription
 import net.mamoe.mirai.console.plugin.jvm.KotlinPlugin
 import net.mamoe.mirai.console.plugin.jvm.savePluginConfig
 import net.mamoe.mirai.console.plugin.version
-import net.mamoe.mirai.contact.nameCardOrNick
 import net.mamoe.mirai.event.events.GroupMessageEvent
 import net.mamoe.mirai.event.globalEventChannel
-import net.mamoe.mirai.message.data.MessageChain.Companion.serializeToJsonString
 import net.mamoe.mirai.utils.MiraiLogger
 import net.mamoe.mirai.utils.info
 import org.mozilla.javascript.*
@@ -16,10 +14,9 @@ import org.mozilla.javascript.Function
 import top.mrxiaom.mirai.dailysign.command.ConsoleCommand
 import top.mrxiaom.mirai.dailysign.command.MessageHost
 import top.mrxiaom.mirai.dailysign.config.DailySignConfig
+import top.mrxiaom.mirai.dailysign.config.PluginConfig
 import top.mrxiaom.mirai.dailysign.data.SignUser
 import java.io.File
-import java.net.URL
-import java.nio.charset.StandardCharsets
 
 object MiraiDailySign : KotlinPlugin(
     JvmPluginDescription(
@@ -36,11 +33,11 @@ object MiraiDailySign : KotlinPlugin(
     val scriptLogger = MiraiLogger.Factory.create(this::class, "MiraiDailySignScript")
     val loadedUsers = mutableMapOf<Long, SignUser>()
     val loadedConfigs = mutableListOf<DailySignConfig>()
-    val replaceScriptFile by lazy { File(configFolder, "script.js") }
-    var replaceScript = ""
+    var script = ""
     override fun onEnable() {
         PermissionHolder["calendar", "每月签到日历触发权限"]
         reloadConfig()
+        PluginConfig.save()
         ConsoleCommand.register()
         globalEventChannel().registerListenerHost(MessageHost)
 
@@ -52,12 +49,13 @@ object MiraiDailySign : KotlinPlugin(
     }
 
     fun reloadScript() {
-        if (!replaceScriptFile.exists()) {
-            replaceScriptFile.writeText(
+        val scriptFile = File(configFolder, "script.js")
+        if (!scriptFile.exists()) {
+            scriptFile.writeText(
                 getResource("script.js") ?: "// `script.js` not found.\n"
             )
         }
-        replaceScript = replaceScriptFile.readText()
+        script = scriptFile.readText()
         logger.info("脚本 script.js 重载完成")
     }
     private fun ScriptableObject.put(name: String, obj: Any) {
@@ -76,7 +74,7 @@ object MiraiDailySign : KotlinPlugin(
             scope.put("source", event.source)
             scope.put("javaContext", this)
             scope.put("javaLoader", this::class.java.classLoader)
-            it.evaluateString(scope, replaceScript, "MiraiDailySign", 1, null)
+            it.evaluateString(scope, script, "MiraiDailySign", 1, null)
             val function = scope.get(funcName, scope) as Function
             return@use function.call(it, scope, scope, args).toString()
         } catch (t: Throwable) {
@@ -99,6 +97,7 @@ object MiraiDailySign : KotlinPlugin(
 
     fun reloadConfig() {
         reloadScript()
+        PluginConfig.reload()
         val files = File(configFolder, "groups").listFiles { _, name -> name.endsWith(".yml") }?.mapNotNull {
             it.nameWithoutExtension
         } ?: listOf()
