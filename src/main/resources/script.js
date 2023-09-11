@@ -107,9 +107,10 @@ function signCalendar(p, data) {
     }
 
     var font = p.font("黑体", "NORMAL", 20);
+    var fontSmall = p.font("黑体", "NORMAL", 12);
     // 颜色是 ARGB 格式
     var bgColor = p.paint("#FFF3D8D1");
-    var textColor = p.paint("#FFFF0000");
+    var textColor = p.paint("#FF222222");
     p.clear(bgColor);
     p.drawTextLine("连续签到 " + data.lastingSignDays + " 天", font, 20, 20, textColor);
 
@@ -117,5 +118,7 @@ function signCalendar(p, data) {
     for (obj in list) {
         if (obj.week == 0) line++;
         // TODO 渲染日期
+        p.drawTextLine(obj.day, font, 20 + obj.week * 25, 60 + line * 36, textColor);
+        p.drawTextLine(obj.status, fontSmall, 20 + obj.week * 25, 60 + line * 36 + 20, textColor);
     }
 }
