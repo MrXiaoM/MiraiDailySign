@@ -44,7 +44,7 @@ object MiraiDailySign : KotlinPlugin(
         logger.info { "Plugin loaded" }
     }
 
-    fun getUser(id: Long): SignUser { 
+    fun getUser(id: Long): SignUser {
         return loadedUsers[id] ?: SignUser(id).also {
             it.reload()
             loadedUsers[id] = it
@@ -77,12 +77,12 @@ object MiraiDailySign : KotlinPlugin(
             scope.put("source", event.source)
             scope.put("javaContext", this)
             scope.put("javaLoader", this::class.java.classLoader)
-            ctx.evaluateString(scope, script, "MiraiDailySign", 1, null)
+            ctx.evaluateString(scope, script, "script.js ", 1, null)
             val function = scope.get(funcName, scope) as Function
             return@use function.call(ctx, scope, scope, args.map { Context.javaToJS(it, scope) }.toTypedArray()).toString()
         } catch (t: Throwable) {
             logger.warning(
-                "执行 $funcName 时，config/top.mrxiaom.mirai.dailysign/replace.js 发生一个异常",
+                "执行 $funcName 时，config/top.mrxiaom.mirai.dailysign/script.js 发生一个异常",
                 t.find<EvaluatorException>() ?: t.find<JavaScriptException>() ?: t.find<EcmaError>() ?: t
             )
             return null

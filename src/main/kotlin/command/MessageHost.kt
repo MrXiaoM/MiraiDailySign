@@ -14,7 +14,6 @@ import net.mamoe.mirai.event.SimpleListenerHost
 import net.mamoe.mirai.event.events.GroupMessageEvent
 import net.mamoe.mirai.message.data.*
 import net.mamoe.mirai.utils.ExternalResource
-import net.mamoe.mirai.utils.ExternalResource.Companion.toExternalResource
 import net.mamoe.mirai.utils.ExternalResource.Companion.uploadAsImage
 import top.mrxiaom.mirai.dailysign.MiraiDailySign
 import top.mrxiaom.mirai.dailysign.MiraiDailySign.save
@@ -62,7 +61,7 @@ object MessageHost : SimpleListenerHost() {
         }
 
         val surface = SurfaceHelper()
-        main.runInJavaScript(this, "signCalendar", surface, data)
+        main.runInJavaScript(this, "signCalendar", surface, data, global)
         val image = surface.toExternalResource()
 
         group.sendMessage(replaceRichVariable(PluginConfig.calendar.joinToString("\n"), subject, sender, QuoteReply(source), image))
