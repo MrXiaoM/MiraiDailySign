@@ -44,8 +44,11 @@ object MiraiDailySign : KotlinPlugin(
         logger.info { "Plugin loaded" }
     }
 
-    fun getUser(id: Long): SignUser {
-        return loadedUsers[id] ?: SignUser(id).also { loadedUsers[id] = it }
+    fun getUser(id: Long): SignUser { 
+        return loadedUsers[id] ?: SignUser(id).also {
+            it.reload()
+            loadedUsers[id] = it
+        }
     }
 
     fun reloadScript() {
@@ -101,6 +104,11 @@ object MiraiDailySign : KotlinPlugin(
         val files = File(configFolder, "groups").listFiles { _, name -> name.endsWith(".yml") }?.mapNotNull {
             it.nameWithoutExtension
         } ?: listOf()
+
+        fun DailySignConfig.addToList(): DailySignConfig {
+            loadedConfigs.add(this)
+            return this
+        }
         if (files.isEmpty()) {
             DailySignConfig("default").addToList().also {
                 it.perm
@@ -117,10 +125,5 @@ object MiraiDailySign : KotlinPlugin(
             }
             logger.info("已加载 ${loadedConfigs.size} 个配置")
         }
-    }
-
-    private fun DailySignConfig.addToList(): DailySignConfig {
-        loadedConfigs.add(this)
-        return this
     }
 }
