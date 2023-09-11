@@ -61,9 +61,9 @@ object MiraiDailySign : KotlinPlugin(
     private fun ScriptableObject.put(name: String, obj: Any) {
         ScriptableObject.putProperty(this, name, Context.javaToJS(obj, this))
     }
-    fun runInJavaScript(event: GroupMessageEvent, funcName: String, vararg args: Any): String? = Context.enter().use {
+    fun runInJavaScript(event: GroupMessageEvent, funcName: String, vararg args: Any): String? = Context.enter().use { ctx ->
         try {
-            val scope = it.initStandardObjects()
+            val scope = ctx.initStandardObjects()
             scope.put("version", version.toString())
             scope.put("logger", scriptLogger)
             scope.put("sender", event.sender)
@@ -74,9 +74,9 @@ object MiraiDailySign : KotlinPlugin(
             scope.put("source", event.source)
             scope.put("javaContext", this)
             scope.put("javaLoader", this::class.java.classLoader)
-            it.evaluateString(scope, script, "MiraiDailySign", 1, null)
+            ctx.evaluateString(scope, script, "MiraiDailySign", 1, null)
             val function = scope.get(funcName, scope) as Function
-            return@use function.call(it, scope, scope, args).toString()
+            return@use function.call(ctx, scope, scope, args.map { Context.javaToJS(it, scope) }.toTypedArray()).toString()
         } catch (t: Throwable) {
             logger.warning(
                 "执行 $funcName 时，config/top.mrxiaom.mirai.dailysign/replace.js 发生一个异常",
