@@ -59,14 +59,25 @@ object MessageHost : SimpleListenerHost() {
             // user.global 不可能为 null，若 data 为 null，必是 user.groups[group.id] 为 null
             user.groups[group.id] = data
         }
+        if (main.isSkiaPluginLoaded) {
+            val surface = SurfaceHelper()
+            main.runInJavaScript(this, "signCalendar", surface, data, global)
+            val image = surface.toExternalResource()
 
-        val surface = SurfaceHelper()
-        main.runInJavaScript(this, "signCalendar", surface, data, global)
-        val image = surface.toExternalResource()
-
-        group.sendMessage(replaceRichVariable(PluginConfig.calendar.joinToString("\n"), subject, sender, QuoteReply(source), image))
-        withContext(Dispatchers.IO) {
-            image?.close()
+            group.sendMessage(
+                replaceRichVariable(
+                    PluginConfig.calendar.joinToString("\n"),
+                    subject,
+                    sender,
+                    QuoteReply(source),
+                    image
+                )
+            )
+            withContext(Dispatchers.IO) {
+                image?.close()
+            }
+        } else {
+            group.sendMessage(QuoteReply(source).plus("未安装前置 mirai-skia-plugin，无法渲染签到日历，请联系机器人管理员安装该前置或禁用此功能"))
         }
         return true
     }

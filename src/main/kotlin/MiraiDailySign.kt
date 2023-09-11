@@ -1,6 +1,9 @@
 package top.mrxiaom.mirai.dailysign
 
 import net.mamoe.mirai.console.command.CommandManager.INSTANCE.register
+import net.mamoe.mirai.console.extension.PluginComponentStorage
+import net.mamoe.mirai.console.plugin.PluginManager
+import net.mamoe.mirai.console.plugin.id
 import net.mamoe.mirai.console.plugin.jvm.JvmPluginDescription
 import net.mamoe.mirai.console.plugin.jvm.KotlinPlugin
 import net.mamoe.mirai.console.plugin.jvm.savePluginConfig
@@ -30,17 +33,27 @@ object MiraiDailySign : KotlinPlugin(
         dependsOn("xyz.cssxsh.mirai.plugin.mirai-skia-plugin", ">= 1.1.0", true)
     }
 ) {
+    private var skiaPluginLoaded: Boolean = false
+    val isSkiaPluginLoaded: Boolean
+        get() = skiaPluginLoaded
     val scriptLogger = MiraiLogger.Factory.create(this::class, "MiraiDailySignScript")
     val loadedUsers = mutableMapOf<Long, SignUser>()
     val loadedConfigs = mutableListOf<DailySignConfig>()
     var script = ""
+    override fun PluginComponentStorage.onLoad() {
+        runAfterStartup {
+        }
+    }
     override fun onEnable() {
+        skiaPluginLoaded = PluginManager.plugins.any { it.id == "xyz.cssxsh.mirai.plugin.mirai-skia-plugin" }
+        if (!skiaPluginLoaded) {
+            logger.warning("未发现前置插件 mirai-skia-plugin，月签到日历查询功能将不可用。")
+        }
         PermissionHolder["calendar", "每月签到日历触发权限"]
         reloadConfig()
         PluginConfig.save()
         ConsoleCommand.register()
         globalEventChannel().registerListenerHost(MessageHost)
-
         logger.info { "Plugin loaded" }
     }
 
