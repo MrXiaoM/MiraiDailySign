@@ -2,6 +2,7 @@ package top.mrxiaom.mirai.dailysign.command
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import net.mamoe.mirai.console.permission.PermissionService.Companion.testPermission
 import net.mamoe.mirai.console.permission.PermitteeId.Companion.permitteeId
 import net.mamoe.mirai.console.plugin.id
@@ -65,6 +66,9 @@ object MessageHost : SimpleListenerHost() {
         val image = surface.toExternalResource()
 
         group.sendMessage(replaceRichVariable(PluginConfig.calendar.joinToString("\n"), subject, sender, QuoteReply(source), image))
+        withContext(Dispatchers.IO) {
+            image?.close()
+        }
         return true
     }
     private suspend fun GroupMessageEvent.processConfig(config: DailySignConfig): Boolean {
