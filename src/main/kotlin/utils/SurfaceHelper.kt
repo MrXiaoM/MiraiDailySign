@@ -2,6 +2,7 @@ package top.mrxiaom.mirai.dailysign.utils
 
 import net.mamoe.mirai.utils.ExternalResource
 import org.jetbrains.skia.*
+import org.jetbrains.skia.shaper.ShapingOptions
 import xyz.cssxsh.mirai.skia.makeSnapshotResource
 import xyz.cssxsh.skia.FontUtils
 
@@ -26,11 +27,17 @@ class SurfaceHelper {
             size = fontSize
         )
     }
+    fun text(s: String, font: Font): TextLine {
+        return TextLine.make(s, font)
+    }
     fun clear(paint: Paint) {
         surface.canvas.clear(paint.color)
     }
     fun drawTextLine(text: String, font: Font, x: Float, y: Float, color: Paint) {
-        surface.canvas.drawTextLine(TextLine.make(text, font), x, y, color)
+        drawTextLine(TextLine.make(text, font), x, y, color)
+    }
+    fun drawTextLine(text: TextLine, x: Float, y: Float, color: Paint) {
+        surface.canvas.drawTextLine(text, x, y, color)
     }
     fun paint(s: String): Paint {
         return s.substring(1).chunked(2).toMutableList().run {

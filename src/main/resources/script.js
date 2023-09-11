@@ -15,6 +15,9 @@
 
 //////////////////[ MiraiDailySign ]/////////////////////
 
+var monthArray = ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"];
+var weekArray = ["星期日","星期一","星期二","星期三","星期四","星期五","星期六"];
+
 // 替换变量的主方法，方法名以及参数不可更改
 function replace(s, config) {
     var d = new Date();
@@ -26,7 +29,7 @@ function replace(s, config) {
     .replace("$nameCardOrNick", nameCardOrNick)
     .replace("$id", sender.id)
     .replace("$date", d.getFullYear() + "年" + (d.getMonth() + 1) + "月" + d.getDate() + "日")
-    .replace("$week", ["星期日","星期一","星期二","星期三",,"星期四","星期五","星期六"][d.getDay()])
+    .replace("$week", weekArray[d.getDay()])
     .replace("$time", d.getHours() + ":" + d.getMinutes() + ":" + d.getSeconds())
     .replace("$hitokoto", getRandomText())
     //.replace("$hitokoto", getFromInternet())
@@ -71,20 +74,67 @@ function signCalendar(p, data) {
     p.init(400, 300);
 
     var d = new Date();
-    var isThisMonth = d.getFullYear() == data.lastSignYear && (d.getMonth() + 1) == data.lastSignMonth;
+    var list = generateCalendar(data, d);
+
+    var font = p.font("黑体", "NORMAL", 20);
+    var fontTitle = p.font("黑体", "NORMAL", 32);
+    var fontLastingSign = p.font("黑体", "NORMAL", 18);
+    var fontSmall = p.font("黑体", "NORMAL", 12);
+    // 颜色是 ARGB 格式
+    var bgColor = p.paint("#FFF3D8D1");
+    var textColor = p.paint("#FF222222");
+    p.clear(bgColor);
+    var slotWidth = 44;
+    var slotHeight = 36;
+
+    var parentY = 72;
+    var parentX = p.surface.width / 2 - 7 * slotWidth / 2;
+
+    // 渲染月份标题
+    p.drawTextLine(monthArray[d.getMonth()], fontTitle, parentX, parentY - 23, textColor);
+    var txtLastingSign = p.text("连续签到 " + data.lastingSignDays + " 天", fontLastingSign);
+    // 连续签到信息
+    p.drawTextLine(txtLastingSign, parentX + 7 * slotWidth - txtLastingSign.width, parentY - 22, textColor);
+
+    // 渲染星期
+    for (var i = 0; i < 7; i++) {
+        var txtWeek = p.text(weekArray[i], fontSmall);
+        p.drawTextLine(txtWeek, parentX + i * slotWidth + slotWidth / 2 - txtWeek.width / 2, parentY, textColor);
+    }
+    // 渲染日期
+    var line = 0;
+    for (i in list) {
+        var obj = list[i];
+        if (obj.week == 0) line++;
+
+        var day = String(obj.day);
+
+        var x = parentX + obj.week * slotWidth;
+        var y = parentY + 24 + line * slotHeight;
+
+        var txtDate = p.text(day, font);
+        var txtStatus = p.text(obj.status, fontSmall);
+        // 注意: 渲染文字的坐标是文字的左下角
+        p.drawTextLine(txtDate, x + slotWidth / 2 - txtDate.width / 2, y, textColor);
+        p.drawTextLine(txtStatus, x + slotWidth / 2 - txtStatus.width / 2, y + txtStatus.height, textColor);
+    }
+}
+
+// 生成日历各日期位置数据
+function generateCalendar(data, d) {
+    // 插件记录的月份 和 js 获取的当前月份，都是从 0 开始的，0 代表一月
+    var isThisMonth = d.getFullYear() == data.lastSignYear && d.getMonth() == data.lastSignMonth;
     var maxDate = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
     var cDate = d.getDate();
     // week == 0 是星期天
     var cWeek = d.getDay();
-
     var list = [];
     var addDate = function() {
-        var status = "unknown";
+        var status = "";
         // 检测已签到
-        if (isThisMonth && data.signCalendarMonthly.contains(cDate)) status = "yes";
+        if (isThisMonth && data.hasDaySign(cDate)) status = "✓";
         // 检测未签到
-        if (status == "unknown" && cDate < d.getDate()) status = "no";
-
+        if (status == "" && cDate < d.getDate()) status = "×";
         list.push({
             "day": cDate, "week": cWeek, "status": status
         });
@@ -97,28 +147,14 @@ function signCalendar(p, data) {
         cDate--;
     }
     list.reverse();
-    cDate = d.getDate();
-    cWeek = d.getDay();
-    while (cDate < maxDate) {
+    cDate = d.getDate() + 1;
+    cWeek = d.getDay() + 1;
+    if (cWeek > 6) cWeek = 0;
+    while (cDate <= maxDate) {
         addDate();
         cWeek++;
         if (cWeek > 6) cWeek = 0;
         cDate++;
     }
-
-    var font = p.font("黑体", "NORMAL", 20);
-    var fontSmall = p.font("黑体", "NORMAL", 12);
-    // 颜色是 ARGB 格式
-    var bgColor = p.paint("#FFF3D8D1");
-    var textColor = p.paint("#FF222222");
-    p.clear(bgColor);
-    p.drawTextLine("连续签到 " + data.lastingSignDays + " 天", font, 20, 20, textColor);
-
-    var line = 0;
-    for (obj in list) {
-        if (obj.week == 0) line++;
-        // TODO 渲染日期
-        p.drawTextLine(obj.day, font, 20 + obj.week * 25, 60 + line * 36, textColor);
-        p.drawTextLine(obj.status, fontSmall, 20 + obj.week * 25, 60 + line * 36 + 20, textColor);
-    }
+    return list;
 }

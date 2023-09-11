@@ -4,6 +4,7 @@ import kotlinx.serialization.Serializable
 import net.mamoe.mirai.console.data.AutoSavePluginData
 import net.mamoe.mirai.console.data.value
 import net.mamoe.mirai.console.util.ConsoleExperimentalApi
+import top.mrxiaom.mirai.dailysign.MiraiDailySign
 import java.util.Calendar.*
 
 class SignUser(
@@ -20,6 +21,9 @@ class SignUser(
         val signCalendarMonthly: MutableSet<Int> = mutableSetOf(),
         var lastingSignDays: Int = 0
     ){
+        fun hasDaySign(day: Int): Boolean {
+            return signCalendarMonthly.contains(day)
+        }
         /**
          * 今日是否已签到
          */
