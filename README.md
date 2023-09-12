@@ -1,6 +1,6 @@
 # MiraiDailySign
 
-[![](https://shields.io/github/downloads/MrXiaoM/MiraiDailySign/total)](https://github.com/MrXiaoM/MiraiDailySign/releases) [![](https://img.shields.io/badge/mirai--console-2.15.0-blue)](https://github.com/mamoe/mirai) [![](https://img.shields.io/badge/MiraiForum-post-yellow)](https://mirai.mamoe.net/topic/)
+[![](https://shields.io/github/downloads/MrXiaoM/MiraiDailySign/total)](https://github.com/MrXiaoM/MiraiDailySign/releases) [![](https://img.shields.io/badge/mirai--console-2.15.0-blue)](https://github.com/mamoe/mirai) [![](https://img.shields.io/badge/MiraiForum-post-yellow)](https://mirai.mamoe.net/topic/2492)
 
 拥有极高自由度的签到插件。适配 [经济服务 Mirai Economy Core](https://github.com/cssxsh/mirai-economy-core)。
 
