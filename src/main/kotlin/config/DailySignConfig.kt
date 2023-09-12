@@ -96,9 +96,24 @@ class DailySignConfig(
         签到奖励模板(群聊上下文)，其中 ${"\$"}currency 为货币种类，${"\$"}money 为货币数量
     """)
     val rewardTemplateGroup by value("☆ \$currency * \$money\n")
+    @ValueName("reward-template-global-continuously")
+    @ValueDescription("""
+        连续签到奖励模板(群聊上下文)，其中 ${"\$"}currency 为货币种类，${"\$"}money 为货币数量
+    """)
+    val rewardTemplateGlobalContinuously by value("☆ \$currency * \$money (连续签到奖励)\n")
+    @ValueName("reward-template-group-continuously")
+    @ValueDescription("""
+        连续签到奖励模板(群聊上下文)，其中 ${"\$"}currency 为货币种类，${"\$"}money 为货币数量
+    """)
+    val rewardTemplateGroupContinuously by value("☆ \$currency * \$money (连续签到奖励)\n")
 
     fun getRewardTemple(info: RewardInfo): String =
         (if (info.isGlobal) rewardTemplateGlobal else rewardTemplateGroup)
+        .replace("\$currency", info.currency.name)
+        .replace("\$money", info.money.toString())
+
+    fun getContinuousRewardTemple(info: RewardInfo): String =
+        (if (info.isGlobal) rewardTemplateGlobalContinuously else rewardTemplateGroupContinuously)
         .replace("\$currency", info.currency.name)
         .replace("\$money", info.money.toString())
 
@@ -111,7 +126,16 @@ class DailySignConfig(
         随机数的上界和下界均可取得
     """)
     val rewards by value(listOf("group:mirai-coin:100"))
+
+    @ValueName("rewards-continuously")
+    @ValueDescription("""
+        连续签到额外奖励，格式为签到天数后面跟上奖励列表
+        奖励列表的编写规则与上方签到奖励相同
+    """)
+    val rewardsContinuously by value(mapOf(3 to listOf("group:mirai-coin:50")))
+
     private val realRewards = mutableListOf<Reward>()
+    private val realRewardsContinuously = mutableMapOf<Int, List<Reward>>()
 
     /**
      * 由 rewards 反序列化而来的签到奖励配置
@@ -120,7 +144,23 @@ class DailySignConfig(
         val isGlobal: Boolean,
         val currency: EconomyCurrency,
         val money: IMoney
-    )
+    ) {
+        companion object {
+            operator fun get(line: String): Reward {
+                val params = line.split(":")
+                val global = when (params.getOrNull(0) ?: error("不存在参数: 经济上下文")) {
+                    "global" -> true
+                    "group" -> false
+                    else -> error("参数错误: 经济上下文应为 global 或 group")
+                }
+                val currencyName = params.getOrNull(1) ?: error("不存在参数: 货币种类")
+                val currency = EconomyService.basket[currencyName] ?: error("货币种类 $currencyName 不存在")
+                val p2 = params.getOrNull(2) ?: error("不存在参数: 金钱数量")
+                val money = p2.toFixedMoney() ?: p2.toRandomMoney() ?: error("参数错误: 输入的金钱 $p2 无效")
+                return Reward(global, currency, money)
+            }
+        }
+    }
 
     /**
      * 签到后返回的签到结果信息
@@ -132,25 +172,34 @@ class DailySignConfig(
     )
     @OptIn(ConsoleExperimentalApi::class)
     fun loadRewards() {
-        realRewards.clear()
         MiraiDailySign.logger.verbose("正在加载配置 $saveName 的签到奖励")
-        for (line in rewards){
-            val params = line.split(":")
-            val global = when (params.getOrNull(0) ?: error("不存在参数: 经济上下文")) {
-                "global" -> true
-                "group" -> false
-                else -> error("参数错误: 应为 global 或 group")
-            }
-            val currencyName = params.getOrNull(1) ?: error("不存在参数: 货币种类")
-            val currency = EconomyService.basket[currencyName] ?: error("货币种类 $currencyName 不存在")
-            val p2 = params.getOrNull(2) ?: error("不存在参数: 金钱数量")
-            val money = p2.toFixedMoney() ?: p2.toRandomMoney() ?: error("参数错误: 输入的金钱 $p2 无效")
-            realRewards.add(Reward(global, currency, money))
+        // 普通奖励
+        realRewards.clear()
+        realRewards.addAll(rewards.map{ Reward[it] })
+        // 连续签到奖励
+        realRewardsContinuously.clear()
+        for ((times, list) in rewardsContinuously.entries) {
+            realRewardsContinuously[times] = list.map { Reward[it] }
         }
     }
     fun giveRewardsTo(group: Group, user: User): List<RewardInfo> {
         val result = mutableListOf<RewardInfo>()
         realRewards.forEach {
+            it.run {
+                val finalMoney = money()
+                if (isGlobal) globalEconomy {
+                    service.account(user) += (currency to finalMoney)
+                } else group.economy {
+                    service.account(user) += (currency to finalMoney)
+                }
+                result.add(RewardInfo(isGlobal, currency, finalMoney))
+            }
+        }
+        return result
+    }
+    fun giveContinuousRewardsTo(group: Group, user: User, times: Int): List<RewardInfo> {
+        val result = mutableListOf<RewardInfo>()
+        realRewardsContinuously[times]?.forEach {
             it.run {
                 val finalMoney = money()
                 if (isGlobal) globalEconomy {
