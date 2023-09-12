@@ -125,14 +125,27 @@ class DailySignConfig(
         数量可填固定数量，如 50，也可以用-符号连接两个整数来表示随机数，如 50-100
         随机数的上界和下界均可取得
     """)
-    val rewards by value(listOf("group:mirai-coin:100"))
+    val rewards by value(listOf(
+        "global:mirai-coin:100"
+    ))
 
     @ValueName("rewards-continuously")
     @ValueDescription("""
         连续签到额外奖励，格式为签到天数后面跟上奖励列表
         奖励列表的编写规则与上方签到奖励相同
     """)
-    val rewardsContinuously by value(mapOf(3 to listOf("group:mirai-coin:50")))
+    val rewardsContinuously by value(mapOf(
+        3 to listOf(
+            "global:mirai-coin:50",
+            "group:mirai-coin:16"
+        ),
+        5 to listOf(
+            "global:mirai-coin:50"
+        ),
+        7 to listOf(
+            "global:mirai-coin:100"
+        ),
+    ))
 
     private val realRewards = mutableListOf<Reward>()
     private val realRewardsContinuously = mutableMapOf<Int, List<Reward>>()
