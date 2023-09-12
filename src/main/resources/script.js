@@ -23,7 +23,10 @@ var monthArray = ["一月", "二月", "三月", "四月", "五月", "六月", "�
 var weekArray = ["星期日","星期一","星期二","星期三","星期四","星期五","星期六"];
 
 // 替换变量的主方法，方法名以及参数不可更改
-function replace(s, config) {
+function replace(s, config, isSuccess) {
+    // 如果已经签到过了，不替换变量，避免替换方法中有网络访问部分，做无用功。
+    if (!isSuccess) return s;
+
     var d = new Date();
     var nameCardOrNick = sender.nameCard;
     if (nameCardOrNick == "") {

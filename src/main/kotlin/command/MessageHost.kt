@@ -141,7 +141,7 @@ object MessageHost : SimpleListenerHost() {
             .replace("\$lasting", info.lastingSignDays.toString())
             .replace("\$rewards", rewards.joinToString())
         main.runInJavaScript(
-            event, "replace", msg, config
+            event, "replace", msg, config, true
         )?.also { msg = it } ?: kotlin.run {
             msg += "\n(替换变量时出现异常，请联系机器人管理员)"
         }
@@ -155,7 +155,7 @@ object MessageHost : SimpleListenerHost() {
         // 通过js替换变量
         var msg = config.alreadySignMessage.joinToString("\n")
         main.runInJavaScript(
-            event, "replace", msg, config
+            event, "replace", msg, config, false
         )?.also { msg = it } ?: kotlin.run {
             msg += "\n(替换变量时出现异常，请联系机器人管理员)"
         }
