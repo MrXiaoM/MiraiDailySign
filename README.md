@@ -50,6 +50,15 @@
 > 下载 MiraiDailySign-*.mirai2.jar  
 > 安装完毕后，编辑配置文件作出你想要的修改。在控制台执行 `/dailysign reload` 重载配置即可~
 
+## 其它插件
+
+推荐与其它已适配经济系统的插件搭配使用。欢迎在 [Pull Requests](https://github.com/MrXiaoM/MiraiDailySign/pulls) 补充该列表，仅接受补充 [MiraiForum](https://mirai.mamoe.net/) 帖子链接，要求插件开源。
+
+<!-- 补充链接时，请保持 https://mirai.mamoe.net/topic/帖子ID 的格式，请删除链接后面的帖子名称、回帖ID、页码等参数 -->
+
+* [LoliYouWant](https://mirai.mamoe.net/topic/1515)
+* [CommandYouWant](https://mirai.mamoe.net/topic/1703)
+
 ## 权限
 
 | 权限                                                 | 说明         |
