@@ -123,12 +123,14 @@ class DailySignConfig(
         签到奖励，格式如下
         奖励金钱到群聊上下文 group:货币种类:数量
         奖励金钱到全局上下文 global:货币种类:数量
-        数量可按以下规则填写:
-        【固定数量】如 50
-        【随机数量 用-符号连接】如 50-100
-        【自定义脚本 js:函数名】如 js:myMethod
+        
+        数量可按以下规则填写 (以下示例均为完整示例):
+        【固定数量】如 global:mirai-coin:50
+        【随机数量 用-符号连接】如 global:mirai-coin:50-100
+        【自定义脚本 js:函数名】如 global:mirai-coin:js:myMethod
+        
         随机数的上界和下界均可取得
-        如果用自定义脚本，需要在 script.js 中添加相应函数，返回金币数值，举个例子
+        如果用自定义脚本，需要在 script.js 中添加相应函数，返回货币数值，举个例子
         function myMethod() {
             return Math.random() * 100 + 50; // 50-150 随机数
         }
