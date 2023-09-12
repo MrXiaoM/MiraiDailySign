@@ -98,9 +98,9 @@ class DailySignConfig(
     val rewardTemplateGroup by value("☆ \$currency * \$money\n")
     @ValueName("reward-template-global-continuously")
     @ValueDescription("""
-        连续签到奖励模板(群聊上下文)，其中 ${"\$"}currency 为货币种类，${"\$"}money 为货币数量
+        连续签到奖励模板(全局上下文)，其中 ${"\$"}currency 为货币种类，${"\$"}money 为货币数量
     """)
-    val rewardTemplateGlobalContinuously by value("☆ \$currency * \$money (连续签到奖励)\n")
+    val rewardTemplateGlobalContinuously by value("★ \$currency * \$money (连续签到奖励)\n")
     @ValueName("reward-template-group-continuously")
     @ValueDescription("""
         连续签到奖励模板(群聊上下文)，其中 ${"\$"}currency 为货币种类，${"\$"}money 为货币数量
