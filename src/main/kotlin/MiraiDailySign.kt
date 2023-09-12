@@ -8,6 +8,8 @@ import net.mamoe.mirai.console.plugin.jvm.JvmPluginDescription
 import net.mamoe.mirai.console.plugin.jvm.KotlinPlugin
 import net.mamoe.mirai.console.plugin.jvm.savePluginConfig
 import net.mamoe.mirai.console.plugin.version
+import net.mamoe.mirai.contact.Group
+import net.mamoe.mirai.contact.User
 import net.mamoe.mirai.event.events.GroupMessageEvent
 import net.mamoe.mirai.event.globalEventChannel
 import net.mamoe.mirai.utils.MiraiLogger
@@ -19,6 +21,11 @@ import top.mrxiaom.mirai.dailysign.command.MessageHost
 import top.mrxiaom.mirai.dailysign.config.DailySignConfig
 import top.mrxiaom.mirai.dailysign.config.PluginConfig
 import top.mrxiaom.mirai.dailysign.data.SignUser
+import xyz.cssxsh.mirai.economy.EconomyService
+import xyz.cssxsh.mirai.economy.economy
+import xyz.cssxsh.mirai.economy.globalEconomy
+import xyz.cssxsh.mirai.economy.service.EconomyCurrency
+import xyz.cssxsh.mirai.economy.service.EconomyCurrencyManager
 import java.io.File
 
 object MiraiDailySign : KotlinPlugin(
@@ -90,6 +97,7 @@ object MiraiDailySign : KotlinPlugin(
             scope.put("bot", event.bot)
             scope.put("message", event.message)
             scope.put("source", event.source)
+            scope.put("economy", EconomyHelper)
             scope.put("javaContext", this)
             scope.put("javaLoader", this::class.java.classLoader)
             ctx.evaluateString(scope, script, "script.js ", 1, null)
@@ -139,6 +147,21 @@ object MiraiDailySign : KotlinPlugin(
                 config.perm
             }
             logger.info("已加载 ${loadedConfigs.size} 个配置")
+        }
+    }
+    object EconomyHelper {
+        fun getGlobalBalance(user: User, currencyName: String): Double {
+            val currency = EconomyService.basket[currencyName] ?: error("货币种类 $currencyName 不存在")
+            return globalEconomy {
+                service.account(user).balance()[currency] ?: 0.0
+            }
+        }
+
+        fun getGroupBalance(subject: Group, user: User, currencyName: String): Double {
+            val currency = EconomyService.basket[currencyName] ?: error("货币种类 $currencyName 不存在")
+            return subject.economy {
+                service.account(user).balance()[currency] ?: 0.0
+            }
         }
     }
 }

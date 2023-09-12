@@ -13,6 +13,10 @@
 // 使用 Object.keys(变量) 可以查看 变量 的所有键，使用 logger.info(内容); 可以把日志内容打印到控制台。
 // java/kotlin/javascript 的编写方法各不相同，调用前请先查看相关的键。
 
+// 特殊方法
+// 获取某人全局上下文的 Mirai币 数量 economy.getGlobalBalance(sender, "mirai-coin");
+// 获取某人在当前群聊上下文的 Mirai币 数量 economy.getGroupBalance(subject, sender, "mirai-coin");
+
 //////////////////[ MiraiDailySign ]/////////////////////
 
 var monthArray = ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"];
