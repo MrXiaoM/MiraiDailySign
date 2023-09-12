@@ -76,7 +76,7 @@ class DailySignConfig(
         "今天你已连续签到 \$lasting 天! 获得了以下奖励",
         "\$rewards",
         "今天是 \$date \$week \$time",
-        "祝你有美好的一天"
+        "「\$hitokoto」"
     ))
     @ValueName("already-sign-message")
     @ValueDescription("""
