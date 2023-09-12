@@ -34,7 +34,7 @@ object MiraiDailySign : KotlinPlugin(
     JvmPluginDescription(
         id = "top.mrxiaom.mirai.dailysign",
         name = "MiraiDailySign",
-        version = "0.1.0",
+        version = BuildConstants.VERSION,
     ) {
         author("MrXiaoM")
 
