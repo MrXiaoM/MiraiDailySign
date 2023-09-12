@@ -18,13 +18,24 @@
 * [x] 渲染月签到月历并发送
 * [ ] Coming soon
 
+## 脚本
+
+本插件附带一个默认脚本 `config/top.mrxiaom.mirai.dailysign/script.js`。
+
+你可以使用该脚本来为签到反馈提示增加自定义变量，以及自定义月签到月历的样式。
+
+在脚本开头有注释提示，脚本中有访问网络获取一言和获取脚本内随机句子的示例，尽情发挥你的想象吧！
+
 ## 安装
 
 首先下载并安装以下前置：
 * `必装` [mirai-economy-core](https://github.com/cssxsh/mirai-economy-core/releases) (经济核心)
 * `可选` [mirai-skia-plugin](https://github.com/cssxsh/mirai-skia-plugin/releases) (绘图前置，用于绘制签到月历)
 
-再到 [Releases](https://github.com/MrXiaoM/MiraiDailySign/releases) 下载插件并放入 plugins 文件夹进行安装
+再到 [Releases](https://github.com/MrXiaoM/MiraiDailySign/releases) 下载插件并放入 plugins 文件夹进行安装。
+
+控制台使用命令 `/sign reload` 即可重载脚本 `script.js` 以及 `groups` 中的所有签到配置！  
+用户数据在 data 文件夹，不建议手动编辑。用户数据实时保存，若在运行时编辑用户数据，你的更改可能会被覆盖。
 
 > 保证你的 mirai 版本大于或等于 2.11.0  
 > 下载 MiraiDailySign-*.mirai2.jar  
