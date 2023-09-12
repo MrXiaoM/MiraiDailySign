@@ -20,6 +20,7 @@ import top.mrxiaom.mirai.dailysign.MiraiDailySign.save
 import top.mrxiaom.mirai.dailysign.PermissionHolder
 import top.mrxiaom.mirai.dailysign.config.DailySignConfig
 import top.mrxiaom.mirai.dailysign.config.PluginConfig
+import top.mrxiaom.mirai.dailysign.data.SignRecord
 import top.mrxiaom.mirai.dailysign.data.SignUser
 import top.mrxiaom.mirai.dailysign.utils.*
 import java.net.URL
@@ -126,6 +127,7 @@ object MessageHost : SimpleListenerHost() {
                 sendAlreadySignMessage(config, this)
             }
         }
+        SignRecord.increase(if (config.global) 0 else group.id)
         return true
     }
 

@@ -16,6 +16,8 @@
 // 特殊方法
 // 获取某人全局上下文的 Mirai币 数量 economy.getGlobalBalance(sender, "mirai-coin");
 // 获取某人在当前群聊上下文的 Mirai币 数量 economy.getGroupBalance(subject, sender, "mirai-coin");
+// 获取当天全局上下文的签到人数 record.global;
+// 获取当天在当前群聊上下文的签到人数 record.group(subject.id);
 
 //////////////////[ MiraiDailySign ]/////////////////////
 

@@ -7,6 +7,7 @@ import net.mamoe.mirai.console.plugin.id
 import net.mamoe.mirai.console.plugin.jvm.JvmPluginDescription
 import net.mamoe.mirai.console.plugin.jvm.KotlinPlugin
 import net.mamoe.mirai.console.plugin.jvm.savePluginConfig
+import net.mamoe.mirai.console.plugin.jvm.savePluginData
 import net.mamoe.mirai.console.plugin.version
 import net.mamoe.mirai.contact.Group
 import net.mamoe.mirai.contact.User
@@ -20,6 +21,7 @@ import top.mrxiaom.mirai.dailysign.command.ConsoleCommand
 import top.mrxiaom.mirai.dailysign.command.MessageHost
 import top.mrxiaom.mirai.dailysign.config.DailySignConfig
 import top.mrxiaom.mirai.dailysign.config.PluginConfig
+import top.mrxiaom.mirai.dailysign.data.SignRecord
 import top.mrxiaom.mirai.dailysign.data.SignUser
 import xyz.cssxsh.mirai.economy.EconomyService
 import xyz.cssxsh.mirai.economy.economy
@@ -61,6 +63,10 @@ object MiraiDailySign : KotlinPlugin(
         PermissionHolder["calendar", "每月签到日历触发权限"]
         reloadConfig()
         PluginConfig.save()
+
+        SignRecord.reload()
+        if (SignRecord.check()) SignRecord.save()
+
         ConsoleCommand.register()
         globalEventChannel().registerListenerHost(MessageHost)
         logger.info { "Plugin loaded" }
@@ -98,6 +104,7 @@ object MiraiDailySign : KotlinPlugin(
             scope.put("message", event.message)
             scope.put("source", event.source)
             scope.put("economy", EconomyHelper)
+            scope.put("record", SignRecord)
             scope.put("javaContext", this)
             scope.put("javaLoader", this::class.java.classLoader)
             ctx.evaluateString(scope, script, "script.js ", 1, null)
