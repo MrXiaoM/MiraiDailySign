@@ -10,8 +10,10 @@ import net.mamoe.mirai.console.util.ConsoleExperimentalApi
 import net.mamoe.mirai.contact.Group
 import net.mamoe.mirai.contact.Member
 import net.mamoe.mirai.contact.User
+import net.mamoe.mirai.event.events.GroupMessageEvent
 import top.mrxiaom.mirai.dailysign.MiraiDailySign
 import top.mrxiaom.mirai.dailysign.PermissionHolder
+import top.mrxiaom.mirai.dailysign.config.CustomMoney.Companion.toCustomMoney
 import top.mrxiaom.mirai.dailysign.config.FixedMoney.Companion.toFixedMoney
 import top.mrxiaom.mirai.dailysign.config.RandomMoney.Companion.toRandomMoney
 import xyz.cssxsh.mirai.economy.EconomyService
@@ -121,8 +123,15 @@ class DailySignConfig(
         签到奖励，格式如下
         奖励金钱到群聊上下文 group:货币种类:数量
         奖励金钱到全局上下文 global:货币种类:数量
-        数量可填固定数量，如 50，也可以用-符号连接两个整数来表示随机数，如 50-100
+        数量可按以下规则填写:
+        【固定数量】如 50
+        【随机数量 用-符号连接】如 50-100
+        【自定义脚本 js:函数名】如 js:myMethod
         随机数的上界和下界均可取得
+        如果用自定义脚本，需要在 script.js 中添加相应函数，返回金币数值，举个例子
+        function myMethod() {
+            return Math.random() * 100 + 50; // 50-150 随机数
+        }
     """)
     val rewards by value(listOf(
         "global:mirai-coin:100"
@@ -159,7 +168,7 @@ class DailySignConfig(
     ) {
         companion object {
             operator fun get(line: String): Reward {
-                val params = line.split(":")
+                val params = java.lang.String(line).split(":", 3)
                 val global = when (params.getOrNull(0) ?: error("不存在参数: 经济上下文")) {
                     "global" -> true
                     "group" -> false
@@ -168,7 +177,7 @@ class DailySignConfig(
                 val currencyName = params.getOrNull(1) ?: error("不存在参数: 货币种类")
                 val currency = EconomyService.basket[currencyName] ?: error("货币种类 $currencyName 不存在")
                 val p2 = params.getOrNull(2) ?: error("不存在参数: 金钱数量")
-                val money = p2.toFixedMoney() ?: p2.toRandomMoney() ?: error("参数错误: 输入的金钱 $p2 无效")
+                val money = p2.toFixedMoney() ?: p2.toRandomMoney() ?: p2.toCustomMoney() ?: error("参数错误: 输入的金钱 $p2 无效")
                 return Reward(global, currency, money)
             }
         }
@@ -195,30 +204,30 @@ class DailySignConfig(
             realRewardsContinuously[times] = list.map { Reward[it] }
         }
     }
-    fun giveRewardsTo(group: Group, user: User): List<RewardInfo> {
+    fun giveRewards(event: GroupMessageEvent): List<RewardInfo> {
         val result = mutableListOf<RewardInfo>()
         realRewards.forEach {
             it.run {
-                val finalMoney = money()
+                val finalMoney = money(event)
                 if (isGlobal) globalEconomy {
-                    service.account(user) += (currency to finalMoney)
-                } else group.economy {
-                    service.account(user) += (currency to finalMoney)
+                    service.account(event.sender) += (currency to finalMoney)
+                } else event.group.economy {
+                    service.account(event.sender) += (currency to finalMoney)
                 }
                 result.add(RewardInfo(isGlobal, false, currency, finalMoney))
             }
         }
         return result
     }
-    fun giveContinuousRewardsTo(group: Group, user: User, times: Int): List<RewardInfo> {
+    fun giveContinuousRewards(event: GroupMessageEvent, times: Int): List<RewardInfo> {
         val result = mutableListOf<RewardInfo>()
         realRewardsContinuously[times]?.forEach {
             it.run {
-                val finalMoney = money()
+                val finalMoney = money(event)
                 if (isGlobal) globalEconomy {
-                    service.account(user) += (currency to finalMoney)
-                } else group.economy {
-                    service.account(user) += (currency to finalMoney)
+                    service.account(event.sender) += (currency to finalMoney)
+                } else event.group.economy {
+                    service.account(event.sender) += (currency to finalMoney)
                 }
                 result.add(RewardInfo(isGlobal, true, currency, finalMoney))
             }
@@ -228,7 +237,7 @@ class DailySignConfig(
 }
 
 interface IMoney{
-    operator fun invoke(): Double
+    operator fun invoke(event: GroupMessageEvent): Double
 }
 
 /**
@@ -237,7 +246,7 @@ interface IMoney{
 class FixedMoney(
     val money: Double
 ): IMoney {
-    override fun invoke(): Double = money
+    override fun invoke(event: GroupMessageEvent): Double = money
     companion object {
         fun String.toFixedMoney(): FixedMoney? {
             return FixedMoney(this.toDoubleOrNull() ?: return null)
@@ -252,7 +261,7 @@ class RandomMoney(
     val min: Int,
     val max: Int
 ): IMoney {
-    override fun invoke(): Double = Random.nextInt(min, max + 1).toDouble()
+    override fun invoke(event: GroupMessageEvent): Double = Random.nextInt(min, max + 1).toDouble()
     companion object {
         fun String.toRandomMoney(): RandomMoney? {
             return if (!contains("-")) null
@@ -260,6 +269,21 @@ class RandomMoney(
                 substringBefore("-").toIntOrNull() ?: return null,
                 substringAfter("-").toIntOrNull() ?: return null
             )
+        }
+    }
+}
+
+class CustomMoney(
+    val method: String
+): IMoney {
+    override fun invoke(event: GroupMessageEvent): Double {
+        return MiraiDailySign.runInJavaScript(event, method)?.toDoubleOrNull() ?: error("脚本返回值异常")
+    }
+    companion object {
+        fun String.toCustomMoney(): CustomMoney? {
+            return if (startsWith("js:"))
+                CustomMoney(this.substring(3))
+            else null
         }
     }
 }

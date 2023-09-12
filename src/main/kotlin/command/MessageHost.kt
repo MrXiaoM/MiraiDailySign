@@ -104,8 +104,8 @@ object MessageHost : SimpleListenerHost() {
         if (config.global) {
             // 签到
             if (user.global.sign()) {
-                val reward = config.giveRewardsTo(group, sender)
-                val reward2 = config.giveContinuousRewardsTo(group, sender, user.global.lastingSignDays)
+                val reward = config.giveRewards(this)
+                val reward2 = config.giveContinuousRewards(this, user.global.lastingSignDays)
                 sendSuccessMessage(config, user.global, reward.plus(reward2), this)
                 user.save()
             } else {
@@ -117,8 +117,8 @@ object MessageHost : SimpleListenerHost() {
             val info = user.groups[group.id] ?: SignUser.SignInfo()
             // 签到
             if (info.sign()) {
-                val reward = config.giveRewardsTo(group, sender)
-                val reward2 = config.giveContinuousRewardsTo(group, sender, info.lastingSignDays)
+                val reward = config.giveRewards(this)
+                val reward2 = config.giveContinuousRewards(this, info.lastingSignDays)
                 sendSuccessMessage(config, info, reward.plus(reward2), this)
                 user.groups[group.id] = info
                 user.save()
