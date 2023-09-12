@@ -108,14 +108,13 @@ class DailySignConfig(
     val rewardTemplateGroupContinuously by value("☆ \$currency * \$money (连续签到奖励)\n")
 
     fun getRewardTemple(info: RewardInfo): String =
-        (if (info.isGlobal) rewardTemplateGlobal else rewardTemplateGroup)
-        .replace("\$currency", info.currency.name)
-        .replace("\$money", info.money.toString())
-
-    fun getContinuousRewardTemple(info: RewardInfo): String =
-        (if (info.isGlobal) rewardTemplateGlobalContinuously else rewardTemplateGroupContinuously)
-        .replace("\$currency", info.currency.name)
-        .replace("\$money", info.money.toString())
+        if (info.isContinuous) {
+            if (info.isGlobal) rewardTemplateGlobalContinuously else rewardTemplateGroupContinuously
+        } else {
+            if (info.isGlobal) rewardTemplateGlobal else rewardTemplateGroup
+        }
+            .replace("\$currency", info.currency.name)
+            .replace("\$money", info.money.toString())
 
     @ValueName("rewards")
     @ValueDescription("""
@@ -180,6 +179,7 @@ class DailySignConfig(
      */
     class RewardInfo(
         val isGlobal: Boolean,
+        val isContinuous: Boolean,
         val currency: EconomyCurrency,
         val money: Double
     )
@@ -205,7 +205,7 @@ class DailySignConfig(
                 } else group.economy {
                     service.account(user) += (currency to finalMoney)
                 }
-                result.add(RewardInfo(isGlobal, currency, finalMoney))
+                result.add(RewardInfo(isGlobal, false, currency, finalMoney))
             }
         }
         return result
@@ -220,7 +220,7 @@ class DailySignConfig(
                 } else group.economy {
                     service.account(user) += (currency to finalMoney)
                 }
-                result.add(RewardInfo(isGlobal, currency, finalMoney))
+                result.add(RewardInfo(isGlobal, true, currency, finalMoney))
             }
         }
         return result
