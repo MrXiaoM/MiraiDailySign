@@ -131,6 +131,8 @@ object MiraiDailySign : KotlinPlugin(
     fun reloadConfig() {
         reloadScript()
         PluginConfig.reload()
+        PluginConfig.save()
+
         val files = File(configFolder, "groups").listFiles { _, name -> name.endsWith(".yml") }?.mapNotNull {
             it.nameWithoutExtension
         } ?: listOf()
@@ -142,7 +144,7 @@ object MiraiDailySign : KotlinPlugin(
         if (files.isEmpty()) {
             DailySignConfig("default").addToList().also {
                 it.perm
-                savePluginConfig(it)
+                it.save()
             }
             logger.info("首次加载，释放默认配置文件")
         } else {
@@ -152,6 +154,7 @@ object MiraiDailySign : KotlinPlugin(
                 config.reload()
                 config.loadRewards()
                 config.perm
+                config.save()
             }
             logger.info("已加载 ${loadedConfigs.size} 个配置")
         }

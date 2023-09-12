@@ -34,7 +34,8 @@
 
 再到 [Releases](https://github.com/MrXiaoM/MiraiDailySign/releases) 下载插件并放入 plugins 文件夹进行安装。
 
-控制台使用命令 `/sign reload` 即可重载脚本 `script.js` 以及 `groups` 中的所有签到配置！  
+控制台使用命令 `/dailysign reload` 即可重载脚本 `script.js` 以及 `groups` 中的所有签到配置！  
+重载后会将载入的签到配置写入文件，以保证更新版本之后配置文件兼容，请在重载之前确保你编辑的配置文件已保存！  
 用户数据在 data 文件夹，不建议手动编辑。用户数据实时保存，若在运行时编辑用户数据，你的更改可能会被覆盖。
 
 > 保证你的 mirai 版本大于或等于 2.11.0  
